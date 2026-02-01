@@ -1,6 +1,6 @@
 [project]
 name = "instructvault"
-version = "0.2.4"
+version = "0.2.5"
 description = "Git-first prompt registry + CI evals + lightweight runtime SDK (ivault)."
 readme = "README.md"
 requires-python = ">=3.10"
