@@ -1,0 +1,14 @@
+spec_version: "1.0"
+name: hello_world
+description: Minimal example prompt.
+variables:
+  required: [name]
+messages:
+  - role: system
+    content: "You are a helpful assistant."
+  - role: user
+    content: "Say hello to {{ name }}."
+tests:
+  - name: includes_name
+    vars: { name: "Ava" }
+    assert: { contains_any: ["Ava"] }

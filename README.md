@@ -25,6 +25,10 @@ flowchart LR
 Enterprises already have Git + PR reviews + CI/CD. Prompts usually don’t.
 InstructVault brings **prompt‑as‑code** without requiring a server, database, or platform.
 
+## Vision
+Short version: Git‑first prompts with CI governance and zero‑latency runtime.  
+Full vision: `docs/vision.md`
+
 ## Features
 - ✅ Git‑native versioning (tags/SHAs = releases)
 - ✅ CLI‑first (`init`, `validate`, `render`, `eval`, `diff`, `resolve`, `bundle`)
@@ -105,6 +109,10 @@ ivault render prompts/support_reply.prompt.yml --vars '{"ticket_text":"My app cr
 ivault eval prompts/support_reply.prompt.yml --dataset datasets/support_cases.jsonl --report out/report.json --junit out/junit.xml
 ```
 
+Note: Prompts must include at least one inline test. Datasets are optional.
+Migration tip: if you need to render a prompt that doesn’t yet include tests, use
+`ivault render --allow-no-tests` or add a minimal test first.
+
 ### 5) Version prompts with tags
 ```bash
 git add prompts datasets
@@ -153,7 +161,17 @@ export IVAULT_REPO_ROOT=/path/to/your/repo
 PYTHONPATH=. uvicorn ivault_playground.app:app --reload
 ```
 
+![Playground screenshot](docs/assets/playground.png)
+
+Optional auth:
+```bash
+export IVAULT_PLAYGROUND_API_KEY=your-secret
+```
+Then send `x-ivault-api-key` in requests (or keep it behind your org gateway).
+If you don’t set the env var, no auth is required.
+
 ## Docs
+- `docs/vision.md`
 - `docs/governance.md`
 - `docs/ci.md`
 - `docs/playground.md`

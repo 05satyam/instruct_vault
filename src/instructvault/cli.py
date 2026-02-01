@@ -39,7 +39,7 @@ def validate(path: Path = typer.Argument(...),
     results = []
     for f in files:
         try:
-            spec = load_prompt_spec(f.read_text(encoding="utf-8"))
+            spec = load_prompt_spec(f.read_text(encoding="utf-8"), allow_no_tests=False)
             try:
                 rel_path = f.relative_to(repo).as_posix()
             except ValueError:
@@ -65,10 +65,14 @@ def render(prompt_path: str = typer.Argument(...),
            vars_json: str = typer.Option("{}", "--vars"),
            ref: Optional[str] = typer.Option(None, "--ref"),
            repo: Path = typer.Option(Path("."), "--repo"),
-           json_out: bool = typer.Option(False, "--json")):
+           json_out: bool = typer.Option(False, "--json"),
+           allow_no_tests: bool = typer.Option(False, "--allow-no-tests")):
     store = PromptStore(repo_root=repo)
-    spec = load_prompt_spec(store.read_text(prompt_path, ref=ref))
-    vars_dict = json.loads(vars_json)
+    spec = load_prompt_spec(store.read_text(prompt_path, ref=ref), allow_no_tests=allow_no_tests)
+    try:
+        vars_dict = json.loads(vars_json)
+    except Exception:
+        raise typer.BadParameter("Invalid JSON for --vars")
     check_required_vars(spec, vars_dict)
     msgs = render_messages(spec, vars_dict)
     if json_out:
@@ -121,7 +125,7 @@ def eval(prompt_path: str = typer.Argument(...),
          repo: Path = typer.Option(Path("."), "--repo"),
          json_out: bool = typer.Option(False, "--json")):
     store = PromptStore(repo_root=repo)
-    spec = load_prompt_spec(store.read_text(prompt_path, ref=ref))
+    spec = load_prompt_spec(store.read_text(prompt_path, ref=ref), allow_no_tests=False)
 
     ok1, r1 = run_inline_tests(spec)
     results = list(r1)

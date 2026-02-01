@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Any, Dict, List, Literal, Optional
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 Role = Literal["system", "user", "assistant", "tool"]
 
@@ -25,6 +25,11 @@ class AssertSpec(BaseModel):
     contains_any: Optional[List[str]] = None
     contains_all: Optional[List[str]] = None
     not_contains: Optional[List[str]] = None
+    @model_validator(mode="after")
+    def _require_one(self) -> "AssertSpec":
+        if not (self.contains_any or self.contains_all or self.not_contains):
+            raise ValueError("assert must include at least one of contains_any, contains_all, not_contains")
+        return self
 
 class PromptTest(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -41,6 +46,17 @@ class PromptSpec(BaseModel):
     variables: VariableSpec = Field(default_factory=VariableSpec)
     messages: List[PromptMessage]
     tests: List[PromptTest] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _require_tests(self) -> "PromptSpec":
+        allow_no_tests = False
+        try:
+            allow_no_tests = bool(self.__pydantic_context__.get("allow_no_tests"))
+        except Exception:
+            allow_no_tests = False
+        if not self.tests and not allow_no_tests:
+            raise ValueError("prompt must include at least one test")
+        return self
 
 class DatasetRow(BaseModel):
     model_config = ConfigDict(extra="forbid")

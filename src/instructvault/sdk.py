@@ -19,12 +19,14 @@ class InstructVault:
 
     def load_prompt(self, prompt_path: str, ref: Optional[str] = None) -> PromptSpec:
         if self.bundle is not None:
+            if ref is not None:
+                raise ValueError("ref is not supported when using bundle_path")
             if prompt_path not in self.bundle:
                 raise FileNotFoundError(f"Prompt not found in bundle: {prompt_path}")
             return self.bundle[prompt_path]
         if self.store is None:
             raise ValueError("No repo_root configured")
-        return load_prompt_spec(self.store.read_text(prompt_path, ref=ref))
+        return load_prompt_spec(self.store.read_text(prompt_path, ref=ref), allow_no_tests=True)
     def render(self, prompt_path: str, vars: Dict[str, Any], ref: Optional[str] = None) -> List[PromptMessage]:
         spec = self.load_prompt(prompt_path, ref=ref)
         check_required_vars(spec, vars)

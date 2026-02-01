@@ -4,13 +4,16 @@ import json
 import yaml
 from .spec import DatasetRow, PromptSpec
 
-def load_prompt_spec(yaml_text: str) -> PromptSpec:
+def load_prompt_spec(yaml_text: str, *, allow_no_tests: bool = True) -> PromptSpec:
     text = yaml_text.strip()
     if text.startswith("{") or text.startswith("["):
-        data: Dict[str, Any] = json.loads(text) if text else {}
+        try:
+            data: Dict[str, Any] = json.loads(text) if text else {}
+        except Exception:
+            data = yaml.safe_load(yaml_text) or {}
     else:
         data = yaml.safe_load(yaml_text) or {}
-    return PromptSpec.model_validate(data)
+    return PromptSpec.model_validate(data, context={"allow_no_tests": allow_no_tests})
 
 def load_dataset_jsonl(text: str) -> List[DatasetRow]:
     rows: List[DatasetRow] = []

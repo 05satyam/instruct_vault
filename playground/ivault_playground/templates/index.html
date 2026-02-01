@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>InstructVault Playground</title>
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="hero">
+        <h1>InstructVault Playground <span class="badge">Individual & Enterprise</span></h1>
+        <p class="sub">Prompts as code with deterministic evals and Git-native deployments.</p>
+        <div class="links">
+          <a href="/docs">API Docs</a>
+          <a href="/health">Health</a>
+          <a href="/prompts">List Prompts</a>
+        </div>
+      </div>
+      <div class="grid" style="margin-top: 20px;">
+        <div class="card">
+          <h3>Fast, Local Runtime</h3>
+          <p>No network calls during inference. Prompts are loaded locally or from a bundle.</p>
+        </div>
+        <div class="card">
+          <h3>Governed Changes</h3>
+          <p>Prompts are versioned in Git and changes flow through PRs and CI.</p>
+        </div>
+        <div class="card">
+          <h3>Deterministic Evals</h3>
+          <p>Tests live alongside prompts and run consistently in CI and locally.</p>
+        </div>
+        <div class="card">
+          <h3>Enterprise & OSS</h3>
+          <p>Works for single devs and org-scale teams with the same workflow.</p>
+        </div>
+      </div>
+      <div class="split">
+        <div class="panel">
+          <h3>Prompts</h3>
+          <div class="row">
+            <label for="refSelect" style="color:#94a3b8;font-size:12px;">Ref</label>
+            <select id="refSelect">
+              <option value="">WORKTREE</option>
+            </select>
+          </div>
+          <div style="color:#94a3b8;font-size:12px;margin-bottom:10px;">
+            WORKTREE = current files. Tags like <code>prompts/v1.0.0</code> appear here.
+          </div>
+          <div class="list" id="promptList"></div>
+        </div>
+        <div class="panel">
+          <div class="row" style="justify-content:space-between;">
+            <h3>Prompt Preview</h3>
+            <button class="btn secondary" id="copyBtn">Copy JSON</button>
+          </div>
+          <pre id="promptPreview">Select a prompt to view its spec.</pre>
+          <div class="col" style="margin-top:12px;">
+            <div style="color:#94a3b8;font-size:12px;">Render with vars (JSON)</div>
+            <textarea id="varsInput"></textarea>
+            <button class="btn" id="renderBtn">Render</button>
+            <pre id="renderOutput">Rendered messages will appear here.</pre>
+          </div>
+        </div>
+      </div>
+      <footer>InstructVault Playground is an optional companion to the core OSS library.</footer>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

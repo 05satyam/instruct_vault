@@ -29,22 +29,32 @@ def collect_prompts(repo_root: Path, prompts_dir: Path, ref: Optional[str]) -> L
     store = PromptStore(repo_root)
     prompts: List[BundlePrompt] = []
     if ref is None:
+        if not prompts_dir.exists():
+            raise FileNotFoundError(f"Prompts directory not found: {prompts_dir}")
+        try:
+            prompts_dir.relative_to(repo_root)
+        except Exception:
+            raise ValueError("prompts_dir must be within repo_root")
         for p in sorted(prompts_dir.rglob("*.prompt.y*ml")):
             rel_path = p.relative_to(repo_root).as_posix()
-            spec = load_prompt_spec(p.read_text(encoding="utf-8"))
+            spec = load_prompt_spec(p.read_text(encoding="utf-8"), allow_no_tests=True)
             prompts.append(BundlePrompt(rel_path, spec))
         for p in sorted(prompts_dir.rglob("*.prompt.json")):
             rel_path = p.relative_to(repo_root).as_posix()
-            spec = load_prompt_spec(p.read_text(encoding="utf-8"))
+            spec = load_prompt_spec(p.read_text(encoding="utf-8"), allow_no_tests=True)
             prompts.append(BundlePrompt(rel_path, spec))
+        if not prompts:
+            raise ValueError(f"No prompt files found in {prompts_dir}")
         return prompts
 
     rel_dir = prompts_dir.relative_to(repo_root).as_posix()
     for rel_path in _list_files_at_ref(repo_root, ref, rel_dir):
         if not _is_prompt_file(rel_path):
             continue
-        spec = load_prompt_spec(store.read_text(rel_path, ref=ref))
+        spec = load_prompt_spec(store.read_text(rel_path, ref=ref), allow_no_tests=True)
         prompts.append(BundlePrompt(rel_path, spec))
+    if not prompts:
+        raise ValueError(f"No prompt files found at ref {ref} in {rel_dir}")
     return prompts
 
 def write_bundle(out_path: Path, *, repo_root: Path, prompts_dir: Path, ref: Optional[str]) -> None:
@@ -59,4 +69,3 @@ def write_bundle(out_path: Path, *, repo_root: Path, prompts_dir: Path, ref: Opt
     }
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-
