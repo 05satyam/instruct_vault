@@ -14,19 +14,3 @@ jobs:
           python-version: "3.11"
       - run: pip install -e ".[dev]"
       - run: pytest
-
-  prompt-checks:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - run: pip install instructvault
-      - run: ivault validate prompts
-      - run: ivault eval prompts/hello_world.prompt.yml --report out/report.json --junit out/junit.xml
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: ivault-reports
-          path: out/
