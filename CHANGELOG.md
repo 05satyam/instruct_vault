@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.2.1] - 2026-02-01
+## [0.2.2] - 2026-02-01
 ### Added
 - Spec versioning (`spec_version`)
 - JSON prompt support
