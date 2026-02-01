@@ -1,0 +1,21 @@
+spec_version: "1.0"
+name: rag_answer
+description: Answer with retrieved context only.
+variables:
+  required: [question, context]
+messages:
+  - role: system
+    content: "Answer using only the provided context. If missing, say you don't know."
+  - role: user
+    content: |
+      Question: {{ question }}
+
+      Context:
+      {{ context }}
+tests:
+  - name: includes_context_marker
+    vars:
+      question: "What is InstructVault?"
+      context: "InstructVault is a Git-first prompt registry."
+    assert:
+      contains_any: ["Context:"]

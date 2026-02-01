@@ -1,0 +1,3 @@
+# Example CODEOWNERS for prompt governance
+prompts/ @your-org/prompt-owners
+datasets/ @your-org/prompt-owners

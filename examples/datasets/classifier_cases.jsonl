@@ -1,0 +1,2 @@
+{"vars":{"ticket_text":"Need refund for last charge"},"assert":{"contains_any":["Ticket:"]}}
+{"vars":{"ticket_text":"Where is my shipment?"},"assert":{"contains_any":["Ticket:"]}}

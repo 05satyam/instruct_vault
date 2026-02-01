@@ -1,0 +1,17 @@
+spec_version: "1.0"
+name: support_reply
+description: Example prompt.
+variables:
+  required: [ticket_text]
+  optional: [customer_name]
+messages:
+  - role: system
+    content: "You are a support engineer."
+  - role: user
+    content: |
+      Customer: {{ customer_name | default("there") }}
+      Ticket: {{ ticket_text }}
+tests:
+  - name: includes_ticket
+    vars: { ticket_text: "Order arrived damaged", customer_name: "Alex" }
+    assert: { contains_all: ["Ticket:", "Customer:"] }

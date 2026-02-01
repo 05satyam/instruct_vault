@@ -1,0 +1,18 @@
+stages:
+  - prompts
+
+ivault_prompts:
+  image: python:3.11
+  stage: prompts
+  rules:
+    - changes:
+        - prompts/**/*
+        - datasets/**/*
+  script:
+    - pip install instructvault
+    - ivault validate prompts
+    - ivault eval prompts/hello_world.prompt.yml --report out/report.json --junit out/junit.xml
+  artifacts:
+    when: always
+    paths:
+      - out/

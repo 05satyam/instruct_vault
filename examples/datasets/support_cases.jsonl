@@ -1,0 +1,2 @@
+{"vars":{"ticket_text":"Order arrived damaged","customer_name":"Alex"},"assert":{"contains_any":["Ticket:"]}}
+{"vars":{"ticket_text":"Need refund"},"assert":{"contains_all":["Ticket:"]}}

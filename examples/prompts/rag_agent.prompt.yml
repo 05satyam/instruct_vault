@@ -1,0 +1,18 @@
+spec_version: "1.0"
+name: rag_agent
+description: Agentic RAG system prompt with tool guidance.
+variables:
+  required: [question]
+messages:
+  - role: system
+    content: |
+      You are a retrieval-augmented agent. Use tools when needed.
+      Always cite evidence from tool results.
+  - role: user
+    content: "Question: {{ question }}"
+tests:
+  - name: includes_question
+    vars:
+      question: "What is prompt versioning?"
+    assert:
+      contains_any: ["Question:"]

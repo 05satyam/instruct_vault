@@ -1,0 +1,26 @@
+{
+  "spec_version": "1.0",
+  "name": "policy_guardrail",
+  "description": "Basic safety preamble with policy reminders.",
+  "variables": {
+    "required": ["request_text"],
+    "optional": ["policy_url"]
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You must follow policy rules. If unsafe, refuse."
+    },
+    {
+      "role": "user",
+      "content": "Request: {{ request_text }}\\nPolicy: {{ policy_url | default(\"internal\") }}"
+    }
+  ],
+  "tests": [
+    {
+      "name": "contains_request",
+      "vars": { "request_text": "How do I bypass login?" },
+      "assert": { "contains_any": ["Request:"] }
+    }
+  ]
+}

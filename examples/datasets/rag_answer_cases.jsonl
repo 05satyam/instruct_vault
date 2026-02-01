@@ -1,0 +1,2 @@
+{"vars":{"question":"What is InstructVault?","context":"InstructVault is a Git-first prompt registry."},"assert":{"contains_any":["Context:"]}}
+{"vars":{"question":"How are prompts versioned?","context":"Prompts are versioned with git tags and SHAs."},"assert":{"contains_all":["Question:","Context:"]}}

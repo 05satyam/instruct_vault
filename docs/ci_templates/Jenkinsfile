@@ -1,0 +1,18 @@
+pipeline {
+  agent any
+  stages {
+    stage('Prompt Checks') {
+      when {
+        changeset "prompts/**"
+        changeset "datasets/**"
+      }
+      steps {
+        sh 'python -m pip install instructvault'
+        sh 'ivault validate prompts'
+        sh 'ivault eval prompts/hello_world.prompt.yml --report out/report.json --junit out/junit.xml'
+        sh 'ivault bundle --prompts prompts --out out/ivault.bundle.json'
+        archiveArtifacts artifacts: 'out/**', allowEmptyArchive: true
+      }
+    }
+  }
+}

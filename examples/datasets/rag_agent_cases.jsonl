@@ -1,0 +1,2 @@
+{"vars":{"question":"What is prompt versioning?"},"assert":{"contains_any":["Question:"]}}
+{"vars":{"question":"When should the agent use tools?"},"assert":{"contains_any":["Question:"]}}

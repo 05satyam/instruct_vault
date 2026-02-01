@@ -1,0 +1,14 @@
+spec_version: "1.0"
+name: ticket_classifier
+description: Classify support tickets into categories.
+variables:
+  required: [ticket_text]
+messages:
+  - role: system
+    content: "You classify support tickets into: billing, shipping, account, other."
+  - role: user
+    content: "Ticket: {{ ticket_text }}"
+tests:
+  - name: contains_ticket
+    vars: { ticket_text: "My credit card was charged twice." }
+    assert: { contains_any: ["Ticket:"] }
