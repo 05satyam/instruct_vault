@@ -1,4 +1,6 @@
-![InstructVault logo](docs/assets/logo_dark.png)
+<div align="center">
+  <img src="docs/assets/logo_light.svg" alt="InstructVault logo" width="260" />
+</div>
 
 # InstructVault (`ivault`)
 **Git‑first prompt hub for teams and individual developers.**
