@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/assets/logo_light.svg" alt="InstructVault logo" width="260" />
+  <img src="docs/assets/logo_light.svg" alt="InstructVault logo" width="500" />
 </div>
 
 # InstructVault (`ivault`)
