@@ -1,3 +1,5 @@
+![InstructVault logo](docs/assets/logo_dark.png)
+
 # InstructVault (`ivault`)
 **Git‑first prompt hub for teams and individual developers.**
 
@@ -141,6 +143,14 @@ ivault bundle --prompts prompts --out out/ivault.bundle.json --ref prompts/v1.0.
 from instructvault import InstructVault
 vault = InstructVault(bundle_path="out/ivault.bundle.json")
 ```
+
+## Notebooks
+- `examples/notebooks/instructvault_colab.ipynb`
+  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/05satyam/instruct_vault/blob/main/examples/notebooks/instructvault_colab.ipynb)
+- `examples/notebooks/instructvault_rag_colab.ipynb`
+  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/05satyam/instruct_vault/blob/main/examples/notebooks/instructvault_rag_colab.ipynb)
+- `examples/notebooks/instructvault_openai_colab.ipynb`
+  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/05satyam/instruct_vault/blob/main/examples/notebooks/instructvault_openai_colab.ipynb)
 
 ## How teams use this in production
 1) Prompt changes go through PRs
