@@ -5,7 +5,9 @@
 # InstructVault (`ivault`)
 **Git‑first prompt hub for teams and individual developers.**
 
-InstructVault makes prompts **first‑class, governed, testable, versioned artifacts** — just like code — while keeping runtime **fast and local**.
+- Prompts are governed artifacts: versioned in Git, validated in CI, and loaded locally at runtime.
+- Teams ship prompt changes as safely as code without added latency or vendor lock‑in.
+- A small, auditable core with deterministic evals, release tags, and optional policy hooks.
 
 ## What this does (at a glance)
 - **Prompts live in Git** as YAML/JSON files
