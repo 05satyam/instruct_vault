@@ -8,8 +8,10 @@ from rich import print as rprint
 from .bundle import write_bundle
 from .diff import unified_diff
 from .eval import run_dataset, run_inline_tests
-from .io import load_dataset_jsonl, load_prompt_spec
+from .io import load_dataset_jsonl, load_prompt_spec, load_prompt_dict
+from .policy import load_policy_module, run_spec_policy
 from .junit import write_junit_xml
+import yaml
 from .render import check_required_vars, render_messages
 from .scaffold import init_repo
 from .store import PromptStore
@@ -30,16 +32,25 @@ def init(repo: Path = typer.Option(Path("."), "--repo")):
 @app.command()
 def validate(path: Path = typer.Argument(...),
              repo: Path = typer.Option(Path("."), "--repo"),
-             json_out: bool = typer.Option(False, "--json")):
+             json_out: bool = typer.Option(False, "--json"),
+             policy: Optional[str] = typer.Option(None, "--policy")):
     base = path if path.is_absolute() else repo / path
     files = _gather_prompt_files(base)
     if not files:
         raise typer.BadParameter("No prompt files found")
     ok = True
     results = []
+    pol = load_policy_module(policy)
     for f in files:
         try:
             spec = load_prompt_spec(f.read_text(encoding="utf-8"), allow_no_tests=False)
+            errors = run_spec_policy(pol, load_prompt_dict(f.read_text(encoding="utf-8")))
+            if errors:
+                ok = False
+                results.append({"path": str(f), "ok": False, "error": "; ".join(errors)})
+                if not json_out:
+                    rprint(f"[red]FAIL[/red] {f}  {errors}")
+                continue
             try:
                 rel_path = f.relative_to(repo).as_posix()
             except ValueError:
@@ -66,15 +77,18 @@ def render(prompt_path: str = typer.Argument(...),
            ref: Optional[str] = typer.Option(None, "--ref"),
            repo: Path = typer.Option(Path("."), "--repo"),
            json_out: bool = typer.Option(False, "--json"),
-           allow_no_tests: bool = typer.Option(False, "--allow-no-tests")):
+           allow_no_tests: bool = typer.Option(False, "--allow-no-tests"),
+           safe: bool = typer.Option(False, "--safe"),
+           strict_vars: bool = typer.Option(False, "--strict-vars"),
+           redact: bool = typer.Option(False, "--redact")):
     store = PromptStore(repo_root=repo)
     spec = load_prompt_spec(store.read_text(prompt_path, ref=ref), allow_no_tests=allow_no_tests)
     try:
         vars_dict = json.loads(vars_json)
     except Exception:
         raise typer.BadParameter("Invalid JSON for --vars")
-    check_required_vars(spec, vars_dict)
-    msgs = render_messages(spec, vars_dict)
+    check_required_vars(spec, vars_dict, safe=safe, strict_vars=strict_vars, redact=redact)
+    msgs = render_messages(spec, vars_dict, safe=safe, strict_vars=strict_vars, redact=redact)
     if json_out:
         rprint(json.dumps([{"role": m.role, "content": m.content} for m in msgs]))
     else:
@@ -108,6 +122,32 @@ def resolve(ref: str = typer.Argument(...),
         rprint(sha)
 
 @app.command()
+def migrate(path: Path = typer.Argument(...),
+            repo: Path = typer.Option(Path("."), "--repo"),
+            apply: bool = typer.Option(False, "--apply")):
+    base = path if path.is_absolute() else repo / path
+    files = _gather_prompt_files(base)
+    if not files:
+        raise typer.BadParameter("No prompt files found")
+    needs = []
+    for f in files:
+        data = load_prompt_dict(f.read_text(encoding="utf-8"))
+        if "spec_version" not in data:
+            needs.append(f)
+    if not needs:
+        rprint("[green]No migration needed[/green]")
+        raise typer.Exit(code=0)
+    for f in needs:
+        if apply:
+            data = load_prompt_dict(f.read_text(encoding="utf-8"))
+            data["spec_version"] = "1.0"
+            f.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+            rprint(f"[green]Updated:[/green] {f}")
+        else:
+            rprint(f"[yellow]Missing spec_version:[/yellow] {f}")
+    raise typer.Exit(code=0 if apply else 1)
+
+@app.command()
 def bundle(prompts: Path = typer.Option(Path("prompts"), "--prompts"),
            out: Path = typer.Option(Path("out/ivault.bundle.json"), "--out"),
            ref: Optional[str] = typer.Option(None, "--ref"),
@@ -123,17 +163,22 @@ def eval(prompt_path: str = typer.Argument(...),
          report: Optional[Path] = typer.Option(None, "--report"),
          junit: Optional[Path] = typer.Option(None, "--junit"),
          repo: Path = typer.Option(Path("."), "--repo"),
-         json_out: bool = typer.Option(False, "--json")):
+         json_out: bool = typer.Option(False, "--json"),
+         safe: bool = typer.Option(False, "--safe"),
+         strict_vars: bool = typer.Option(False, "--strict-vars"),
+         redact: bool = typer.Option(False, "--redact"),
+         policy: Optional[str] = typer.Option(None, "--policy")):
     store = PromptStore(repo_root=repo)
     spec = load_prompt_spec(store.read_text(prompt_path, ref=ref), allow_no_tests=False)
+    pol = load_policy_module(policy)
 
-    ok1, r1 = run_inline_tests(spec)
+    ok1, r1 = run_inline_tests(spec, safe=safe, strict_vars=strict_vars, redact=redact, policy=pol)
     results = list(r1)
     ok = ok1
 
     if dataset is not None:
         rows = load_dataset_jsonl(dataset.read_text(encoding="utf-8"))
-        ok2, r2 = run_dataset(spec, rows)
+        ok2, r2 = run_dataset(spec, rows, safe=safe, strict_vars=strict_vars, redact=redact, policy=pol)
         ok = ok and ok2
         results.extend(r2)
 

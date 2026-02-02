@@ -161,3 +161,37 @@ def test_bundle_ref_param_with_bundle_path_errors(tmp_path: Path) -> None:
         assert False, "expected error"
     except Exception:
         assert True
+
+def test_render_strict_vars_blocks_extra(tmp_path: Path) -> None:
+    _git_init(tmp_path)
+    runner.invoke(app, ["init", "--repo", str(tmp_path)])
+    prompt_rel = "prompts/hello_world.prompt.yml"
+    res = runner.invoke(app, ["render", prompt_rel, "--repo", str(tmp_path), "--vars", '{"name":"Ava","extra":"x"}', "--strict-vars"])
+    assert res.exit_code != 0
+
+def test_render_safe_blocks_secret(tmp_path: Path) -> None:
+    _git_init(tmp_path)
+    runner.invoke(app, ["init", "--repo", str(tmp_path)])
+    prompt_rel = "prompts/hello_world.prompt.yml"
+    res = runner.invoke(app, ["render", prompt_rel, "--repo", str(tmp_path), "--vars", '{"name":"sk-abc12345678901234567890"}', "--safe"])
+    assert res.exit_code != 0
+
+def test_render_safe_redact_allows(tmp_path: Path) -> None:
+    _git_init(tmp_path)
+    runner.invoke(app, ["init", "--repo", str(tmp_path)])
+    prompt_rel = "prompts/hello_world.prompt.yml"
+    res = runner.invoke(app, ["render", prompt_rel, "--repo", str(tmp_path), "--vars", '{"name":"sk-abc12345678901234567890"}', "--safe", "--redact"])
+    assert res.exit_code == 0
+
+def test_validate_policy_hook(tmp_path: Path) -> None:
+    _git_init(tmp_path)
+    runner.invoke(app, ["init", "--repo", str(tmp_path)])
+    policy = tmp_path / "policy.py"
+    policy.write_text(
+        "def check_spec(spec):\n"
+        "    if spec.get('name') == 'hello_world':\n"
+        "        return ['blocked name']\n"
+        "    return []\n"
+    )
+    res = runner.invoke(app, ["validate", "prompts", "--repo", str(tmp_path), "--policy", str(policy)])
+    assert res.exit_code != 0

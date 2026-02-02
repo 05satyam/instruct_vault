@@ -102,6 +102,10 @@ ivault validate prompts
 ivault render prompts/support_reply.prompt.yml --vars '{"ticket_text":"My app crashed.","customer_name":"Sam"}'
 ```
 
+Safety tip: add `--safe` to scan rendered output for common secret patterns.
+Use `--strict-vars` to forbid unknown vars and `--redact` to mask detected secrets.
+Use `--policy /path/to/policy.py` to enforce custom compliance rules.
+
 ### 4) Add dataset‑driven eval
 `datasets/support_cases.jsonl`
 ```jsonl
@@ -116,6 +120,11 @@ ivault eval prompts/support_reply.prompt.yml --dataset datasets/support_cases.js
 Note: Prompts must include at least one inline test. Datasets are optional.
 Migration tip: if you need to render a prompt that doesn’t yet include tests, use
 `ivault render --allow-no-tests` or add a minimal test first.
+
+Spec migration check:
+```bash
+ivault migrate prompts
+```
 
 ### 5) Version prompts with tags
 ```bash
@@ -154,6 +163,10 @@ vault = InstructVault(bundle_path="out/ivault.bundle.json")
 - `examples/notebooks/instructvault_openai_colab.ipynb`
   [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/05satyam/instruct_vault/blob/main/examples/notebooks/instructvault_openai_colab.ipynb)
 
+## Example Policies
+- `examples/policies/policy_example.py`
+- `examples/policies/policy_pack.py`
+
 ## How teams use this in production
 1) Prompt changes go through PRs
 2) CI runs `validate` + `eval`
@@ -183,11 +196,13 @@ Then send `x-ivault-api-key` in requests (or keep it behind your org gateway).
 If you don’t set the env var, no auth is required.
 
 ## Docs
+- `docs/spec.md`
 - `docs/vision.md`
 - `docs/governance.md`
 - `docs/ci.md`
 - `docs/playground.md`
 - `docs/cookbooks.md`
+- `docs/audit_logging.md`
 - `docs/dropin_guide.md`
 - `docs/release_checklist.md`
 - `docs/ci_templates/gitlab-ci.yml`

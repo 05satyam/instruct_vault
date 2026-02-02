@@ -15,6 +15,15 @@ def load_prompt_spec(yaml_text: str, *, allow_no_tests: bool = True) -> PromptSp
         data = yaml.safe_load(yaml_text) or {}
     return PromptSpec.model_validate(data, context={"allow_no_tests": allow_no_tests})
 
+def load_prompt_dict(text: str) -> Dict[str, Any]:
+    raw = text.strip()
+    if raw.startswith("{") or raw.startswith("["):
+        try:
+            return json.loads(raw) if raw else {}
+        except Exception:
+            return yaml.safe_load(text) or {}
+    return yaml.safe_load(text) or {}
+
 def load_dataset_jsonl(text: str) -> List[DatasetRow]:
     rows: List[DatasetRow] = []
     for i, line in enumerate(text.splitlines(), start=1):

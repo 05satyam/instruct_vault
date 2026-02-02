@@ -27,7 +27,7 @@ class InstructVault:
         if self.store is None:
             raise ValueError("No repo_root configured")
         return load_prompt_spec(self.store.read_text(prompt_path, ref=ref), allow_no_tests=True)
-    def render(self, prompt_path: str, vars: Dict[str, Any], ref: Optional[str] = None) -> List[PromptMessage]:
+    def render(self, prompt_path: str, vars: Dict[str, Any], ref: Optional[str] = None, *, safe: bool = False, strict_vars: bool = False, redact: bool = False) -> List[PromptMessage]:
         spec = self.load_prompt(prompt_path, ref=ref)
-        check_required_vars(spec, vars)
-        return render_messages(spec, vars)
+        check_required_vars(spec, vars, safe=safe, strict_vars=strict_vars, redact=redact)
+        return render_messages(spec, vars, safe=safe, strict_vars=strict_vars, redact=redact)

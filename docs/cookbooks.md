@@ -133,3 +133,42 @@ GitHub Actions snippet:
 Notes:
 - The dataset is still local when `ivault` runs.
 - Keep dataset files versioned or checksum-locked for reproducibility.
+
+## 12) Policy hooks (compliance / PII)
+Create a policy module and pass it to `ivault`:
+```bash
+ivault validate prompts --policy examples/policies/policy_example.py
+ivault eval prompts/support_reply.prompt.yml --policy examples/policies/policy_example.py
+```
+
+Default policy pack (simple PII + forbidden phrases):
+```bash
+ivault validate prompts --policy examples/policies/policy_pack.py
+ivault eval prompts/support_reply.prompt.yml --policy examples/policies/policy_pack.py
+```
+
+## 13) Custom evals (your own rules)
+You can run your own checks using the SDK:
+```python
+from instructvault import InstructVault
+
+vault = InstructVault(repo_root=".")
+msgs = vault.render("prompts/support_reply.prompt.yml", vars={"ticket_text":"Order delayed"})
+
+# Custom checks here
+assert any("Ticket:" in m.content for m in msgs)
+```
+
+Or plug in a policy module:
+```bash
+ivault eval prompts/support_reply.prompt.yml --policy my_policy.py
+```
+
+Policy module signature:
+```python
+def check_spec(spec: dict) -> list[str]:
+    return []
+
+def check_render(text: str, context: dict) -> list[str]:
+    return []
+```

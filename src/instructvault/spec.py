@@ -25,9 +25,12 @@ class AssertSpec(BaseModel):
     contains_any: Optional[List[str]] = None
     contains_all: Optional[List[str]] = None
     not_contains: Optional[List[str]] = None
+    matches: Optional[List[str]] = None
+    not_matches: Optional[List[str]] = None
+    json_schema: Optional[Dict[str, Any]] = None
     @model_validator(mode="after")
     def _require_one(self) -> "AssertSpec":
-        if not (self.contains_any or self.contains_all or self.not_contains):
+        if not (self.contains_any or self.contains_all or self.not_contains or self.matches or self.not_matches or self.json_schema):
             raise ValueError("assert must include at least one of contains_any, contains_all, not_contains")
         return self
 
