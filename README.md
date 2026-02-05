@@ -61,6 +61,50 @@ pytest
 
 ## Quickstart (end‑to‑end)
 
+### End‑user workflow (typical)
+1) Install `instructvault` in your app repo (or a dedicated prompts repo)
+2) Run `ivault init` once to scaffold `prompts/`, `datasets/`, and CI
+3) Add or edit prompt files under `prompts/`
+4) Validate and eval locally (`ivault validate`, `ivault eval`)
+5) Commit prompt changes and create a tag (e.g., `prompts/v1.0.0`)
+6) In your app, render by git ref (tag/branch/SHA) or ship a bundle artifact
+
+### Using InstructVault in an existing app repo
+1) `pip install instructvault`
+2) Create a `prompts/` folder (or pick an existing one)
+3) Add prompt files under `prompts/` and at least one inline test per prompt
+4) Add CI checks (copy from `docs/ci.md` or run `ivault init` to scaffold workflow)
+5) Validate/eval locally: `ivault validate prompts`, `ivault eval prompts/<file>.prompt.yml --report out/report.json`
+6) Commit prompts and optionally tag: `git tag prompts/v1.0.0`
+7) At runtime, load by ref or bundle artifact
+
+### Visual workflow (Mermaid)
+```mermaid
+flowchart TD
+  A[Install ivault] --> B[ivault init]
+  B --> C[Add/edit prompts]
+  C --> D[ivault validate + eval]
+  D --> E[Commit + tag]
+  E --> F{Runtime path}
+  F -->|Load by ref| G[InstructVault(repo_root)]
+  F -->|Bundle artifact| H[ivault bundle]
+  H --> I[InstructVault(bundle_path)]
+```
+
+### Visual workflow (existing app repo)
+```mermaid
+flowchart TD
+  A[Install instructvault] --> B[Create/choose prompts/]
+  B --> C[Add/edit prompt files]
+  C --> D[Add CI checks]
+  D --> E[Local validate + eval]
+  E --> F[Commit + tag (optional)]
+  F --> G{Runtime path}
+  G -->|Load by ref| H[InstructVault(repo_root)]
+  G -->|Bundle artifact| I[ivault bundle]
+  I --> J[InstructVault(bundle_path)]
+```
+
 ### 1) Initialize a repo
 ```bash
 ivault init
@@ -147,6 +191,10 @@ msgs = vault.render(
 )
 ```
 
+Troubleshooting: if you pass a `ref` and see `FileNotFoundError` from `store.read_text`,
+the prompt file must exist at that ref and be committed in the same repo. Tags/branches
+must point to commits that include the prompt file.
+
 ### 7) Bundle prompts at build time (optional)
 ```bash
 ivault bundle --prompts prompts --out out/ivault.bundle.json --ref prompts/v1.0.0
@@ -198,17 +246,17 @@ Then send `x-ivault-api-key` in requests (or keep it behind your org gateway).
 If you don’t set the env var, no auth is required.
 
 ## Docs
-- `docs/spec.md`
-- `docs/vision.md`
-- `docs/governance.md`
-- `docs/ci.md`
-- `docs/playground.md`
-- `docs/cookbooks.md`
-- `docs/audit_logging.md`
-- `docs/dropin_guide.md`
-- `docs/release_checklist.md`
-- `docs/ci_templates/gitlab-ci.yml`
-- `docs/ci_templates/Jenkinsfile`
+- `docs/dropin_guide.md` — minimal setup if you already have CI
+- `docs/cookbooks.md` — workflows (tags, bundles, multi‑repo, RAG)
+- `docs/spec.md` — prompt spec and validation rules
+- `docs/ci.md` — CI setup and reports
+- `docs/governance.md` — CODEOWNERS and release guardrails
+- `docs/playground.md` — optional local/hosted playground
+- `docs/audit_logging.md` — audit fields and patterns
+- `docs/vision.md` — product vision and guiding principles
+- `docs/release_checklist.md` — release checklist for maintainers
+- `docs/ci_templates/gitlab-ci.yml` — GitLab CI example
+- `docs/ci_templates/Jenkinsfile` — Jenkins example
 - `CHANGELOG.md`
 - `CODE_OF_CONDUCT.md`
 
