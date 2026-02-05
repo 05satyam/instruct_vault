@@ -199,6 +199,25 @@ Troubleshooting: if you pass a `ref` and see `FileNotFoundError` from `store.rea
 the prompt file must exist at that ref and be committed in the same repo. Tags/branches
 must point to commits that include the prompt file.
 
+### Multi‑repo usage (app repo + prompts repo)
+If your prompts live in a separate repo, point `repo_root` to that repo (not your app repo),
+or bundle prompts at build time and ship the bundle with your app.
+```python
+from instructvault import InstructVault
+
+vault = InstructVault(repo_root="/path/to/prompts-repo")
+msgs = vault.render(
+  "prompts/support_reply.prompt.yml",
+  vars={"ticket_text":"My order is delayed"},
+  ref="prompts/v1.0.0",
+)
+```
+
+### Troubleshooting (common)
+- `FileNotFoundError ... read_text` with `ref`: prompt not committed at that ref, or wrong repo_root
+- `No prompt files found`: path passed to `ivault validate` doesn’t contain `*.prompt.yml|json`
+- `prompt must include at least one test`: add a minimal inline test or use `--allow-no-tests` for render
+
 ### 7) Bundle prompts at build time (optional)
 ```bash
 ivault bundle --prompts prompts --out out/ivault.bundle.json --ref prompts/v1.0.0
