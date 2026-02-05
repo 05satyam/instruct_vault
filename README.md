@@ -9,6 +9,10 @@
 - Teams ship prompt changes as safely as code without added latency or vendor lock‑in.
 - A small, auditable core with deterministic evals, release tags, and optional policy hooks.
 
+InstructVault is a Git‑first “prompt‑as‑code” system. Prompts live in your repo,
+are validated and evaluated in CI, released via tags/SHAs, and loaded locally at runtime
+directly from Git or via a bundle artifact.
+
 ## What this does (at a glance)
 - **Prompts live in Git** as YAML/JSON files
 - **CI validates + evaluates** prompts on every change
