@@ -78,31 +78,31 @@ pytest
 6) Commit prompts and optionally tag: `git tag prompts/v1.0.0`
 7) At runtime, load by ref or bundle artifact
 
-### Visual workflow (Mermaid)
+### Visual workflow (new app repo)
 ```mermaid
-flowchart TD
+flowchart LR
   A[Install ivault] --> B[ivault init]
-  B --> C[Add/edit prompts]
-  C --> D[ivault validate + eval]
-  D --> E[Commit + tag]
+  B --> C["Add/edit prompts"]
+  C --> D["ivault validate + eval"]
+  D --> E["Commit + tag"]
   E --> F{Runtime path}
-  F -->|Load by ref| G[InstructVault(repo_root)]
+  F -->|Load by ref| G["InstructVault(repo_root)"]
   F -->|Bundle artifact| H[ivault bundle]
-  H --> I[InstructVault(bundle_path)]
+  H --> I["InstructVault(bundle_path)"]
 ```
 
 ### Visual workflow (existing app repo)
 ```mermaid
-flowchart TD
-  A[Install instructvault] --> B[Create/choose prompts/]
-  B --> C[Add/edit prompt files]
+flowchart LR
+  A[Install instructvault] --> B["Create/choose prompts/"]
+  B --> C["Add/edit prompt files"]
   C --> D[Add CI checks]
-  D --> E[Local validate + eval]
-  E --> F[Commit + tag (optional)]
+  D --> E["Local validate + eval"]
+  E --> F["Commit + tag (optional)"]
   F --> G{Runtime path}
-  G -->|Load by ref| H[InstructVault(repo_root)]
+  G -->|Load by ref| H["InstructVault(repo_root)"]
   G -->|Bundle artifact| I[ivault bundle]
-  I --> J[InstructVault(bundle_path)]
+  I --> J["InstructVault(bundle_path)"]
 ```
 
 ### 1) Initialize a repo
@@ -148,9 +148,10 @@ ivault validate prompts
 ivault render prompts/support_reply.prompt.yml --vars '{"ticket_text":"My app crashed.","customer_name":"Sam"}'
 ```
 
-Safety tip: add `--safe` to scan rendered output for common secret patterns.
-Use `--strict-vars` to forbid unknown vars and `--redact` to mask detected secrets.
-Use `--policy /path/to/policy.py` to enforce custom compliance rules.
+#### Safety tip: 
+- Add `--safe` to scan rendered output for common secret patterns.
+- Use `--strict-vars` to forbid unknown vars and `--redact` to mask detected secrets.
+- Use `--policy /path/to/policy.py` to enforce custom compliance rules.
 
 ### 4) Add dataset‑driven eval
 `datasets/support_cases.jsonl`
@@ -163,11 +164,10 @@ Use `--policy /path/to/policy.py` to enforce custom compliance rules.
 ivault eval prompts/support_reply.prompt.yml --dataset datasets/support_cases.jsonl --report out/report.json --junit out/junit.xml
 ```
 
-Note: Prompts must include at least one inline test. Datasets are optional.
-Migration tip: if you need to render a prompt that doesn’t yet include tests, use
-`ivault render --allow-no-tests` or add a minimal test first.
+#### Note: Prompts must include at least one inline test. Datasets are optional.
+#### Migration tip: if you need to render a prompt that doesn’t yet include tests, use  `ivault render --allow-no-tests` or add a minimal test first.
 
-Spec migration check:
+#### Spec migration check:
 ```bash
 ivault migrate prompts
 ```
