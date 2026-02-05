@@ -94,7 +94,7 @@ flowchart LR
 ### Visual workflow (existing app repo)
 ```mermaid
 flowchart LR
-  A[Install instructvault] --> B["Create/choose prompts/"]
+  A[Install instructvault] --> B["Create/choose prompts/ + datasets/"]
   B --> C["Add/edit prompt files"]
   C --> D[Add CI checks]
   D --> E["Local validate + eval"]
@@ -212,6 +212,9 @@ vault = InstructVault(bundle_path="out/ivault.bundle.json")
   [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/05satyam/instruct_vault/blob/main/examples/notebooks/instructvault_rag_colab.ipynb)
 - `examples/notebooks/instructvault_openai_colab.ipynb`
   [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/05satyam/instruct_vault/blob/main/examples/notebooks/instructvault_openai_colab.ipynb)
+
+## Examples
+- `examples/ivault_demo_template/README.md`
 
 ## Example Policies
 - `examples/policies/policy_example.py`

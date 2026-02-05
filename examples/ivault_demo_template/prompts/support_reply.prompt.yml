@@ -1,0 +1,27 @@
+spec_version: "1.0"
+name: support_reply
+description: Respond to a support ticket with empathy and clear steps.
+model_defaults:
+  temperature: 0.2
+
+variables:
+  required: [ticket_text]
+  optional: [customer_name]
+
+messages:
+  - role: system
+    content: |
+      You are a support engineer. Be concise, empathetic, and action-oriented.
+  - role: user
+    content: |
+      Customer: {{ customer_name | default("there") }}
+      Ticket:
+      {{ ticket_text }}
+
+tests:
+  - name: must_contain_customer_and_ticket
+    vars:
+      ticket_text: "My order arrived damaged."
+      customer_name: "Alex"
+    assert:
+      contains_all: ["Customer:", "Ticket:"]
