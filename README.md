@@ -10,44 +10,75 @@
 
 **Version prompts in Git, test them in CI, load them locally at runtime.**
 
-- Prompts are governed artifacts: versioned in Git, validated in CI, and released by tag or SHA.
-- Teams ship prompt changes with PR reviews and deterministic checks, without a hosted prompt registry.
-- Runtime stays local: load from a repo checkout, a pinned Git ref, or a bundle artifact.
+InstructVault is a Git-first prompt-as-code toolkit for engineering teams. Prompts live as YAML/JSON files, prompt changes go through PRs and CI, releases are pinned by tag or SHA, and apps render prompts from a local repo checkout or bundle artifact.
 
-InstructVault is a Git‑first “prompt‑as‑code” system. Prompts live in your repo,
-are validated and evaluated in CI, released via tags/SHAs, and loaded locally at runtime
-directly from Git or via a bundle artifact.
-
-## What this does (at a glance)
-- **Prompts live in Git** as YAML/JSON files
-- **CI validates + evaluates** prompts on every change
-- **Releases are tags/SHAs**, reproducible by design
-- **Runtime stays lightweight** (local read or bundle artifact)
-
-## Why teams use it
-- **No new control plane**: keep prompts in the same Git, PR, and CI flow you already trust
-- **Reproducible releases**: deploy by tag or SHA instead of mutable prompt state
-- **Fast runtime**: no network hop to fetch prompts at inference time
-- **Framework agnostic**: return plain `{role, content}` messages to any LLM stack
-
-## System flow (Mermaid)
-```mermaid
-flowchart LR
-  A[Prompt files<br/>YAML/JSON] --> B[PR Review]
-  B --> C[CI: validate + eval]
-  C --> D{Release?}
-  D -- tag/SHA --> E[Bundle artifact]
-  D -- tag/SHA --> F[Deploy app]
-  E --> F
-  F --> G[Runtime render<br/>local or bundle]
+## 30-second try
+```bash
+pip install instructvault
+ivault init
+ivault validate prompts
+ivault render prompts/hello_world.prompt.yml --vars '{"name":"Ava"}'
 ```
 
-## Why this exists
-Enterprises already have Git + PR reviews + CI/CD. Prompts usually don’t.
-InstructVault brings **prompt‑as‑code** without requiring a server, database, or platform.
+PyPI: https://pypi.org/project/instructvault/  
+GitHub: https://github.com/05satyam/instruct_vault
 
-## Where it fits
+## Why Teams Use It
+- **Git-native governance**: review prompt changes with the same PR, CODEOWNERS, and branch protection flow as code.
+- **CI checks for prompts**: validate specs, run deterministic evals, and emit JSON or JUnit reports.
+- **Reproducible releases**: deploy prompt versions by tag, SHA, or build-time bundle.
+- **Local runtime**: no hosted registry call is required to fetch prompts at inference time.
+- **Framework agnostic**: output is plain `{role, content}` messages for any LLM stack.
 
+## Tiny Example
+Create a prompt:
+
+```yaml
+# prompts/support_reply.prompt.yml
+spec_version: "1.0"
+name: support_reply
+variables:
+  required: [ticket_text]
+  optional: [customer_name]
+messages:
+  - role: system
+    content: "You are a concise, empathetic support engineer."
+  - role: user
+    content: |
+      Customer: {{ customer_name | default("there") }}
+      Ticket: {{ ticket_text }}
+tests:
+  - name: includes_ticket
+    vars:
+      ticket_text: "My order arrived damaged."
+    assert:
+      contains_all: ["Ticket:"]
+```
+
+Render it in your app:
+
+```python
+from instructvault import InstructVault
+
+vault = InstructVault(repo_root=".")
+messages = vault.render(
+    "prompts/support_reply.prompt.yml",
+    vars={"ticket_text": "My order is delayed", "customer_name": "Ava"},
+    ref="prompts/v1.0.0",
+)
+```
+
+## CLI
+```bash
+ivault init
+ivault validate prompts
+ivault render prompts/support_reply.prompt.yml --vars '{"ticket_text":"Need refund"}'
+ivault eval prompts/support_reply.prompt.yml --report out/report.json --junit out/junit.xml
+ivault diff prompts/support_reply.prompt.yml --ref1 prompts/v1.0.0 --ref2 HEAD
+ivault bundle --prompts prompts --out out/ivault.bundle.json --ref prompts/v1.0.0
+```
+
+## Where It Fits
 | Approach | Versioned in Git | CI-friendly | Local runtime | Hosted dependency |
 | --- | --- | --- | --- | --- |
 | Prompt strings inside app code | Partial | Partial | Yes | No |
@@ -55,326 +86,45 @@ InstructVault brings **prompt‑as‑code** without requiring a server, database
 | Hosted prompt registry/platform | Varies | Varies | Usually no | Yes |
 | **InstructVault** | **Yes** | **Yes** | **Yes** | **No** |
 
-## Vision
-Short version: Git‑first prompts with CI governance and zero‑latency runtime.  
-Full vision: `docs/vision.md`
-
-## Features
-- ✅ Git‑native versioning (tags/SHAs = releases)
-- ✅ CLI‑first (`init`, `validate`, `render`, `eval`, `diff`, `resolve`, `bundle`)
-- ✅ LLM‑framework agnostic (returns standard `{role, content}` messages)
-- ✅ CI‑friendly reports (JSON + optional JUnit XML)
-- ✅ No runtime latency tax (local read or bundle)
-- ✅ Optional playground (separate package)
-
-## Install
-### Users
-```bash
-pip install instructvault
+## System Flow
+```mermaid
+flowchart LR
+  A[Prompt files] --> B[PR review]
+  B --> C[CI validate + eval]
+  C --> D[Tag, SHA, or bundle]
+  D --> E[App runtime]
+  E --> F[Rendered messages]
 ```
 
-PyPI: https://pypi.org/project/instructvault/
-
-### Contributors
+## Install For Development
 ```bash
-git clone <your-repo>
-cd instructvault
+git clone https://github.com/05satyam/instruct_vault.git
+cd instruct_vault
 python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 python -m pytest
 ```
 
-## Quickstart (end‑to‑end)
-
-### End‑user workflow (typical)
-1) Install `instructvault` in your app repo (or a dedicated prompts repo)
-2) Run `ivault init` once to scaffold `prompts/`, `datasets/`, and CI
-3) Add or edit prompt files under `prompts/`
-4) Validate and eval locally (`ivault validate`, `ivault eval`)
-5) Commit prompt changes and create a tag (e.g., `prompts/v1.0.0`)
-6) In your app, render by git ref (tag/branch/SHA) or ship a bundle artifact
-
-### Using InstructVault in an existing app repo
-1) `pip install instructvault`
-2) Create a `prompts/` folder (or pick an existing one)
-3) Add prompt files under `prompts/` and at least one inline test per prompt
-4) Add CI checks (copy from `docs/ci.md` or run `ivault init` to scaffold workflow)
-5) Validate/eval locally: `ivault validate prompts`, `ivault eval prompts/<file>.prompt.yml --report out/report.json`
-6) Commit prompts and optionally tag: `git tag prompts/v1.0.0`
-7) At runtime, load by ref or bundle artifact
-
-### Visual workflow (new app repo)
-```mermaid
-flowchart LR
-  A[Install ivault] --> B[ivault init]
-  B --> C["Add/edit prompts"]
-  C --> D["ivault validate + eval"]
-  D --> E["Commit + tag"]
-  E --> F{Runtime path}
-  F -->|Load by ref| G["InstructVault(repo_root)"]
-  F -->|Bundle artifact| H[ivault bundle]
-  H --> I["InstructVault(bundle_path)"]
-```
-
-### Visual workflow (existing app repo)
-```mermaid
-flowchart LR
-  A[Install instructvault] --> B["Create/choose prompts/ + datasets/"]
-  B --> C["Add/edit prompt files"]
-  C --> D[Add CI checks]
-  D --> E["Local validate + eval"]
-  E --> F["Commit + tag (optional)"]
-  F --> G{Runtime path}
-  G -->|Load by ref| H["InstructVault(repo_root)"]
-  G -->|Bundle artifact| I[ivault bundle]
-  I --> J["InstructVault(bundle_path)"]
-```
-
-### 1) Initialize a repo
-```bash
-ivault init
-```
-
-### 2) Create a prompt
-`prompts/support_reply.prompt.yml` (YAML or JSON)
-```yaml
-spec_version: "1.0"
-name: support_reply
-description: Respond to a support ticket with empathy and clear steps.
-model_defaults:
-  temperature: 0.2
-
-variables:
-  required: [ticket_text]
-  optional: [customer_name]
-
-messages:
-  - role: system
-    content: |
-      You are a support engineer. Be concise, empathetic, and action-oriented.
-  - role: user
-    content: |
-      Customer: {{ customer_name | default("there") }}
-      Ticket:
-      {{ ticket_text }}
-
-tests:
-  - name: must_contain_customer_and_ticket
-    vars:
-      ticket_text: "My order arrived damaged."
-      customer_name: "Alex"
-    assert:
-      contains_all: ["Customer:", "Ticket:"]
-```
-
-### 3) Validate + render locally
-```bash
-ivault validate prompts
-ivault render prompts/support_reply.prompt.yml --vars '{"ticket_text":"My app crashed.","customer_name":"Sam"}'
-```
-
-#### Safety tip: 
-- Add `--safe` to scan rendered output for common secret patterns.
-- Use `--strict-vars` to forbid unknown vars and `--redact` to mask detected secrets.
-- Use `--policy /path/to/policy.py` to enforce custom compliance rules.
-
-### 4) Add dataset‑driven eval
-`datasets/support_cases.jsonl`
-```jsonl
-{"vars":{"ticket_text":"Order arrived damaged","customer_name":"Alex"},"assert":{"contains_any":["Ticket:"]}}
-{"vars":{"ticket_text":"Need refund"},"assert":{"contains_all":["Ticket:"]}}
-```
-
-```bash
-ivault eval prompts/support_reply.prompt.yml --dataset datasets/support_cases.jsonl --report out/report.json --junit out/junit.xml
-```
-
-#### Note: Prompts must include at least one inline test. Datasets are optional.
-#### Migration tip: if you need to render a prompt that doesn’t yet include tests, use  `ivault render --allow-no-tests` or add a minimal test first.
-
-#### Spec migration check:
-```bash
-ivault migrate prompts
-```
-
-### 5) Version prompts with tags
-```bash
-git add prompts datasets
-git commit -m "Add support prompts + eval dataset"
-git tag prompts/v1.0.0
-```
-
-### 6) Load by Git ref at runtime
-```python
-from instructvault import InstructVault
-
-vault = InstructVault(repo_root=".")
-msgs = vault.render(
-  "prompts/support_reply.prompt.yml",
-  vars={"ticket_text":"My order is delayed", "customer_name":"Ava"},
-  ref="prompts/v1.0.0",
-)
-```
-
-### Framework integrations
-
-#### OpenAI Python SDK
-```python
-from openai import OpenAI
-from instructvault import InstructVault
-
-client = OpenAI()
-vault = InstructVault(repo_root=".")
-
-messages = vault.render(
-  "prompts/support_reply.prompt.yml",
-  vars={"ticket_text": "My order is delayed", "customer_name": "Ava"},
-  ref="prompts/v1.0.0",
-)
-
-response = client.chat.completions.create(
-  model="gpt-4o-mini",
-  messages=[{"role": m.role, "content": m.content} for m in messages],
-)
-```
-
-#### LangChain
-```python
-from langchain_openai import ChatOpenAI
-from instructvault import InstructVault
-
-llm = ChatOpenAI(model="gpt-4o-mini")
-vault = InstructVault(repo_root=".")
-messages = vault.render(
-  "prompts/support_reply.prompt.yml",
-  vars={"ticket_text": "Refund request"},
-)
-
-response = llm.invoke(
-  [{"role": m.role, "content": m.content} for m in messages]
-)
-```
-
-#### LlamaIndex
-```python
-from llama_index.llms.openai import OpenAI
-from llama_index.core.llms import ChatMessage
-from instructvault import InstructVault
-
-llm = OpenAI(model="gpt-4o-mini")
-vault = InstructVault(repo_root=".")
-messages = vault.render(
-  "prompts/support_reply.prompt.yml",
-  vars={"ticket_text": "Need help resetting password"},
-)
-
-response = llm.chat(
-  [ChatMessage(role=m.role, content=m.content) for m in messages]
-)
-```
-
-Troubleshooting: if you pass a `ref` and see `FileNotFoundError` from `store.read_text`,
-the prompt file must exist at that ref and be committed in the same repo. Tags/branches
-must point to commits that include the prompt file.
-
-### Multi‑repo usage (app repo + prompts repo)
-If your prompts live in a separate repo, point `repo_root` to that repo (not your app repo),
-or bundle prompts at build time and ship the bundle with your app.
-```python
-from instructvault import InstructVault
-
-vault = InstructVault(repo_root="/path/to/prompts-repo")
-msgs = vault.render(
-  "prompts/support_reply.prompt.yml",
-  vars={"ticket_text":"My order is delayed"},
-  ref="prompts/v1.0.0",
-)
-```
-
-### Troubleshooting (common)
-- `FileNotFoundError ... read_text` with `ref`: prompt not committed at that ref, or wrong repo_root
-- `No prompt files found`: path passed to `ivault validate` doesn’t contain `*.prompt.yml|json`
-- `prompt must include at least one test`: add a minimal inline test or use `--allow-no-tests` for render
-
-### 7) Bundle prompts at build time (optional)
-```bash
-ivault bundle --prompts prompts --out out/ivault.bundle.json --ref prompts/v1.0.0
-```
-
-```python
-from instructvault import InstructVault
-vault = InstructVault(bundle_path="out/ivault.bundle.json")
-```
-
-## Notebooks
-- `examples/notebooks/instructvault_colab.ipynb`
-  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/05satyam/instruct_vault/blob/main/examples/notebooks/instructvault_colab.ipynb)
-- `examples/notebooks/instructvault_rag_colab.ipynb`
-  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/05satyam/instruct_vault/blob/main/examples/notebooks/instructvault_rag_colab.ipynb)
-- `examples/notebooks/instructvault_openai_colab.ipynb`
-  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/05satyam/instruct_vault/blob/main/examples/notebooks/instructvault_openai_colab.ipynb)
+## Docs
+- `docs/dropin_guide.md` - add InstructVault to an existing repo
+- `docs/cookbooks.md` - OpenAI, LangChain, LlamaIndex, RAG, policies, bundles
+- `docs/why_instructvault.md` - when to use InstructVault vs other approaches
+- `docs/spec.md` - prompt spec and validation rules
+- `docs/stability.md` - stable surfaces and compatibility expectations
+- `docs/ci.md` - CI setup and reports
+- `docs/governance.md` - CODEOWNERS and release guardrails
+- `docs/roadmap.md` - roadmap, in-scope, and out-of-scope work
+- `docs/performance.md` - performance principles and benchmarking guidance
+- `docs/playground.md` - optional local/hosted playground
 
 ## Examples
 - `examples/ivault_demo_template/README.md`
-
-## Example Policies
+- `examples/notebooks/instructvault_colab.ipynb`
+- `examples/notebooks/instructvault_rag_colab.ipynb`
+- `examples/notebooks/instructvault_openai_colab.ipynb`
 - `examples/policies/policy_example.py`
 - `examples/policies/policy_pack.py`
 
-## How teams use this in production
-1) Prompt changes go through PRs
-2) CI runs `validate` + `eval`
-3) Tags or bundles become the deployable artifact
-4) Apps load by tag or bundle (no runtime network calls)
-
-## Trust signals
-- Published on PyPI: `pip install instructvault`
-- Core library stays small and dependency-light
-- Tests and CI workflows live in this repo
-- Output format is plain messages, not a framework-specific runtime
-- Optional playground is split out to keep the core auditable
-
-## Datasets (why JSONL)
-Datasets are **deterministic eval inputs** checked into Git. This makes CI reproducible and audit‑friendly.
-For cloud datasets, use a CI pre‑step (e.g., download from S3) and then run `ivault eval` on the local file.
-
-## Playground (optional)
-A minimal playground exists under `playground/` for local or org‑hosted use.
-It lists prompts, renders with variables, and runs evals — without touching production prompts directly.
-For local dev, run from the repo root:
-```bash
-export IVAULT_REPO_ROOT=/path/to/your/repo
-PYTHONPATH=. uvicorn ivault_playground.app:app --reload
-```
-
-![Playground screenshot](docs/assets/playground.png)
-
-Optional auth:
-```bash
-export IVAULT_PLAYGROUND_API_KEY=your-secret
-```
-Then send `x-ivault-api-key` in requests (or keep it behind your org gateway).
-If you don’t set the env var, no auth is required.
-
-## Docs
-- `docs/dropin_guide.md` — minimal setup if you already have CI
-- `docs/cookbooks.md` — workflows (tags, bundles, multi‑repo, RAG)
-- `docs/why_instructvault.md` — when to use InstructVault vs other approaches
-- `docs/spec.md` — prompt spec and validation rules
-- `docs/stability.md` — stable surfaces and compatibility expectations
-- `docs/ci.md` — CI setup and reports
-- `docs/governance.md` — CODEOWNERS and release guardrails
-- `docs/roadmap.md` — near-term roadmap, in-scope, and out-of-scope work
-- `docs/performance.md` — performance principles and benchmarking guidance
-- `docs/playground.md` — optional local/hosted playground
-- `docs/audit_logging.md` — audit fields and patterns
-- `docs/vision.md` — product vision and guiding principles
-- `docs/release_checklist.md` — release checklist for maintainers
-- `docs/ci_templates/gitlab-ci.yml` — GitLab CI example
-- `docs/ci_templates/Jenkinsfile` — Jenkins example
-- `CHANGELOG.md`
-- `CODE_OF_CONDUCT.md`
-
 ## License
-Apache‑2.0
+Apache-2.0

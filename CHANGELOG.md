@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+No unreleased changes.
+
+## [0.3.1] - 2026-05-05
 ### Added
 - Public roadmap and stability docs
 - Comparison and performance guidance docs

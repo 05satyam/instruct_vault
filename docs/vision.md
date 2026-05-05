@@ -7,7 +7,7 @@ InstructVault makes prompts **first‑class, governed, testable, versioned artif
 **Prompts live in Git.**  
 **Prompt changes flow through CI/CD.**  
 **Prompt releases are immutable and reproducible.**  
-**Runtime stays fast, local, and framework‑agnostic.**
+**Runtime stays local, fast, and framework‑agnostic.**
 
 If InstructVault ever violates this, it is a bug — not a feature.
 
@@ -15,8 +15,8 @@ If InstructVault ever violates this, it is a bug — not a feature.
 1) **Git is the source of truth**  
    Prompts are files; versions are tags/SHAs/branches. No prompt database required.
 
-2) **Zero runtime latency**  
-   No network calls at inference time. Load from local repo or build‑time bundles.
+2) **No prompt-fetch network hop at runtime**  
+   No hosted registry call is required at inference time. Load from a local repo or build-time bundle.
 
 3) **Framework & vendor agnostic**  
    Output is standard `{ role, content }` messages. Works with any LLM stack.
