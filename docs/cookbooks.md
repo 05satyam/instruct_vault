@@ -218,6 +218,8 @@ response = llm.invoke(
 ## 16) LlamaIndex integration
 **Goal:** use Git-versioned prompts without coupling the prompt source to the LlamaIndex app code.
 
+Full example: `examples/llamaindex_demo/`
+
 ```python
 from llama_index.core.llms import ChatMessage
 from llama_index.llms.openai import OpenAI

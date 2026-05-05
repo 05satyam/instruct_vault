@@ -120,6 +120,7 @@ python -m pytest
 
 ## Examples
 - `examples/ivault_demo_template/README.md`
+- `examples/llamaindex_demo/README.md`
 - `examples/notebooks/instructvault_colab.ipynb`
 - `examples/notebooks/instructvault_rag_colab.ipynb`
 - `examples/notebooks/instructvault_openai_colab.ipynb`
