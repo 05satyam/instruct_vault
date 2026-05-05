@@ -4,5 +4,5 @@
 
 ## Testing
 ```
-pytest
+python -m pytest
 ```

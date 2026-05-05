@@ -4,6 +4,9 @@
 
 # InstructVault (`ivault`)
 [![PyPI version](https://img.shields.io/pypi/v/instructvault.svg)](https://pypi.org/project/instructvault/)
+[![Python versions](https://img.shields.io/pypi/pyversions/instructvault.svg)](https://pypi.org/project/instructvault/)
+[![CI](https://github.com/05satyam/instruct_vault/actions/workflows/ci.yml/badge.svg)](https://github.com/05satyam/instruct_vault/actions/workflows/ci.yml)
+[![Release](https://github.com/05satyam/instruct_vault/actions/workflows/release.yml/badge.svg)](https://github.com/05satyam/instruct_vault/actions/workflows/release.yml)
 
 **Version prompts in Git, test them in CI, load them locally at runtime.**
 
@@ -357,9 +360,13 @@ If you don’t set the env var, no auth is required.
 ## Docs
 - `docs/dropin_guide.md` — minimal setup if you already have CI
 - `docs/cookbooks.md` — workflows (tags, bundles, multi‑repo, RAG)
+- `docs/why_instructvault.md` — when to use InstructVault vs other approaches
 - `docs/spec.md` — prompt spec and validation rules
+- `docs/stability.md` — stable surfaces and compatibility expectations
 - `docs/ci.md` — CI setup and reports
 - `docs/governance.md` — CODEOWNERS and release guardrails
+- `docs/roadmap.md` — near-term roadmap, in-scope, and out-of-scope work
+- `docs/performance.md` — performance principles and benchmarking guidance
 - `docs/playground.md` — optional local/hosted playground
 - `docs/audit_logging.md` — audit fields and patterns
 - `docs/vision.md` — product vision and guiding principles
