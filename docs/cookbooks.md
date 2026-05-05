@@ -172,3 +172,66 @@ def check_spec(spec: dict) -> list[str]:
 def check_render(text: str, context: dict) -> list[str]:
     return []
 ```
+
+## 14) OpenAI SDK integration
+**Goal:** keep prompts versioned in Git while using the standard OpenAI client at runtime.
+
+```python
+from openai import OpenAI
+from instructvault import InstructVault
+
+client = OpenAI()
+vault = InstructVault(repo_root=".")
+
+messages = vault.render(
+    "prompts/support_reply.prompt.yml",
+    vars={"ticket_text": "Order delayed", "customer_name": "Ava"},
+    ref="prompts/v1.2.0",
+)
+
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": m.role, "content": m.content} for m in messages],
+)
+```
+
+## 15) LangChain integration
+**Goal:** render prompts with InstructVault and pass plain chat messages into LangChain.
+
+```python
+from langchain_openai import ChatOpenAI
+from instructvault import InstructVault
+
+llm = ChatOpenAI(model="gpt-4o-mini")
+vault = InstructVault(repo_root=".")
+
+messages = vault.render(
+    "prompts/support_reply.prompt.yml",
+    vars={"ticket_text": "Need refund"},
+)
+
+response = llm.invoke(
+    [{"role": m.role, "content": m.content} for m in messages]
+)
+```
+
+## 16) LlamaIndex integration
+**Goal:** use Git-versioned prompts without coupling the prompt source to the LlamaIndex app code.
+
+```python
+from llama_index.core.llms import ChatMessage
+from llama_index.llms.openai import OpenAI
+from instructvault import InstructVault
+
+llm = OpenAI(model="gpt-4o-mini")
+vault = InstructVault(repo_root=".")
+
+messages = vault.render(
+    "prompts/support_reply.prompt.yml",
+    vars={"ticket_text": "Reset my password"},
+)
+
+response = llm.chat(
+    [ChatMessage(role=m.role, content=m.content) for m in messages]
+)
+```

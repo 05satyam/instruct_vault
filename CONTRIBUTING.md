@@ -7,12 +7,11 @@ Thanks for contributing to InstructVault.
 python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
-pytest
+python -m pytest
 ```
 
 ## Pull requests
 - Keep changes focused and small
 - Add tests for new behavior
-- Run `pytest` locally
+- Run `python -m pytest` locally
 - Update docs if user-facing behavior changes
-

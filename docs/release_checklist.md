@@ -7,7 +7,7 @@
 - Bundle format is versioned
 
 ## Quality
-- All tests pass (`pytest`)
+- All tests pass (`python -m pytest`)
 - No new lint errors (`ruff`, `mypy` if used)
 - Backward compatibility noted in changelog
 
