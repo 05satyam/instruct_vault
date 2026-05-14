@@ -37,6 +37,9 @@ Create a prompt:
 # prompts/support_reply.prompt.yml
 spec_version: "1.0"
 name: support_reply
+modelParameters:
+  model: gpt-4o
+  temperature: 0.3
 variables:
   required: [ticket_text]
   optional: [customer_name]

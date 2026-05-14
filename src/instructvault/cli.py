@@ -92,6 +92,8 @@ def render(prompt_path: str = typer.Argument(...),
     if json_out:
         rprint(json.dumps([{"role": m.role, "content": m.content} for m in msgs]))
     else:
+        if spec.model_defaults.model:
+            rprint(f"[dim]model: {spec.model_defaults.model}[/dim]\n")
         for m in msgs:
             rprint(f"[bold]{m.role}[/bold]\n{m.content}\n")
 

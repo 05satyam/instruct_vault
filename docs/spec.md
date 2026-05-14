@@ -27,7 +27,7 @@ Required:
 
 Optional:
 - `description`
-- `modelParameters` (alias: `model_defaults`)
+- `modelParameters` (alias: `model_defaults`) — supports `model`, `temperature`, `top_p`, `max_tokens`
 - `variables`
 
 ## Tests

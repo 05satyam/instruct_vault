@@ -16,6 +16,7 @@ class VariableSpec(BaseModel):
 
 class ModelDefaults(BaseModel):
     model_config = ConfigDict(extra="allow")
+    model: Optional[str] = None
     temperature: Optional[float] = None
     top_p: Optional[float] = None
     max_tokens: Optional[int] = None
