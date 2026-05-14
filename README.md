@@ -118,7 +118,7 @@ python -m pytest
 - `docs/ci.md` - CI setup and reports
 - `docs/governance.md` - CODEOWNERS and release guardrails
 - `docs/roadmap.md` - roadmap, in-scope, and out-of-scope work
-- `docs/performance.md` - performance principles and benchmarking guidance
+- `docs/performance.md` - performance principles, benchmarks (`benchmarks/`) and how to run them
 - `docs/playground.md` - optional local/hosted playground
 
 ## Examples

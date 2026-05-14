@@ -25,6 +25,11 @@ dev = [
   "httpx>=0.27",
   "fastapi>=0.110",
 ]
+# Optional statistical benchmarking. Not required to run benchmarks/run.py.
+# Install with:  pip install -e ".[benchmark]"
+benchmark = [
+  "pytest-benchmark>=4.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/05satyam/instruct_vault"

@@ -20,34 +20,31 @@ This repo does not publish universal latency numbers because performance depends
 - application startup model
 
 ## How to benchmark locally
-Measure the path that matters in your deployment:
 
-1. Render from the worktree
+A ready-made plumbing benchmark suite lives in the `benchmarks/` folder. It
+covers the five things infra teams typically ask about: render latency,
+bundle load, validation throughput, bundle size, and resident memory.
+
 ```bash
-python3 - <<'PY'
-from instructvault import InstructVault
+# Standalone — no extra deps beyond what InstructVault already needs.
+python benchmarks/run.py
+python benchmarks/run.py --num-prompts 1000 --iters 10000 --json results.json
 
-vault = InstructVault(repo_root=".")
-for _ in range(1000):
-    vault.render("prompts/hello_world.prompt.yml", vars={"name": "Ava"})
-PY
+# Statistical (min/median/stddev/IQR) via pytest-benchmark.
+pip install -e ".[benchmark]"
+pytest benchmarks/test_perf.py --benchmark-only
 ```
 
-2. Render from a bundle
-```bash
-ivault bundle --prompts prompts --out out/ivault.bundle.json
-python3 - <<'PY'
-from instructvault import InstructVault
+The benchmarks are intentionally **not** part of the default `pytest` run, so
+CI is unaffected.
 
-vault = InstructVault(bundle_path="out/ivault.bundle.json")
-for _ in range(1000):
-    vault.render("prompts/hello_world.prompt.yml", vars={"name": "Ava"})
-PY
-```
+### What the benchmarks do not claim
 
-3. Compare with your application baseline
-- same container image
-- same filesystem layout
-- same prompt corpus size
+- They are **not** universal performance guarantees. Filesystem, CPU,
+  container layout, and Python version all matter.
+- They measure the **InstructVault path only** — no LLM call is involved.
+  A typical LLM call is 100–1000× slower than rendering a prompt, so the
+  goal here is just to show that the prompt-registry overhead is negligible.
 
-That will give you a meaningful local number instead of a synthetic repo claim.
+If you want a meaningful number for your deployment, run the suite inside
+your container image with your real prompt corpus size.
