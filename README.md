@@ -10,29 +10,17 @@
 
 **Version prompts in Git, test them in CI, load them locally at runtime.**
 
-InstructVault is a Git-first prompt-as-code toolkit for engineering teams. Prompts live as YAML/JSON files, prompt changes go through PRs and CI, releases are pinned by tag or SHA, and apps render prompts from a local repo checkout or bundle artifact.
+Prompts live as YAML/JSON files. Changes go through PRs and CI, releases are pinned by tag or SHA, and your app renders them from a local checkout or a bundle artifact — no hosted registry in the request path.
 
-## 30-second try
+## Quickstart
 ```bash
 pip install instructvault
-ivault init
-ivault validate prompts
+ivault init                                              # scaffold prompts/, datasets/, CI workflow
+ivault validate prompts                                  # check every prompt spec
 ivault render prompts/hello_world.prompt.yml --vars '{"name":"Ava"}'
 ```
 
-PyPI: https://pypi.org/project/instructvault/  
-GitHub: https://github.com/05satyam/instruct_vault
-
-## Why Teams Use It
-- **Git-native governance**: review prompt changes with the same PR, CODEOWNERS, and branch protection flow as code.
-- **CI checks for prompts**: validate specs, run deterministic evals, and emit JSON or JUnit reports.
-- **Reproducible releases**: deploy prompt versions by tag, SHA, or build-time bundle.
-- **Local runtime**: no hosted registry call is required to fetch prompts at inference time.
-- **Framework agnostic**: output is plain `{role, content}` messages for any LLM stack.
-
-## Tiny Example
-Create a prompt:
-
+## A prompt looks like this
 ```yaml
 # prompts/support_reply.prompt.yml
 spec_version: "1.0"
@@ -50,85 +38,74 @@ messages:
     content: |
       Customer: {{ customer_name | default("there") }}
       Ticket: {{ ticket_text }}
-tests:
+tests:                       # at least one test is required
   - name: includes_ticket
-    vars:
-      ticket_text: "My order arrived damaged."
-    assert:
-      contains_all: ["Ticket:"]
+    vars: { ticket_text: "My order arrived damaged." }
+    assert: { contains_all: ["Ticket:"] }
 ```
 
-Render it in your app:
+## Use it in your app
+`render()` returns a list of `{role, content}` messages that also carries the spec's model config, so it drops straight into any client:
 
 ```python
+from openai import OpenAI
 from instructvault import InstructVault
 
-vault = InstructVault(repo_root=".")
-messages = vault.render(
+client = OpenAI()
+vault = InstructVault(repo_root=".")               # or bundle_path="out/ivault.bundle.json"
+
+result = vault.render(
     "prompts/support_reply.prompt.yml",
     vars={"ticket_text": "My order is delayed", "customer_name": "Ava"},
-    ref="prompts/v1.0.0",
+    ref="prompts/v1.0.0",                          # pin to a tag/SHA (omit for working tree)
 )
+
+response = client.chat.completions.create(**result.to_openai())
 ```
+
+`result` is a plain list, so `for m in result: m.content` still works. Adapters: `.to_openai()`, `.to_anthropic()`, `.to_litellm()`, `.to_dict()`.
 
 ## CLI
-```bash
-ivault init
-ivault validate prompts
-ivault render prompts/support_reply.prompt.yml --vars '{"ticket_text":"Need refund"}'
-ivault eval prompts/support_reply.prompt.yml --report out/report.json --junit out/junit.xml
-ivault diff prompts/support_reply.prompt.yml --ref1 prompts/v1.0.0 --ref2 HEAD
-ivault bundle --prompts prompts --out out/ivault.bundle.json --ref prompts/v1.0.0
-```
+| Command | Purpose |
+| --- | --- |
+| `ivault init` | Scaffold `prompts/`, `datasets/`, and a CI workflow |
+| `ivault validate <path>` | Validate prompt specs (add `--policy` for custom rules) |
+| `ivault render <prompt> --vars '{...}'` | Render messages locally |
+| `ivault eval <prompt> --report out/report.json --junit out/junit.xml` | Run tests/datasets, emit reports |
+| `ivault diff <prompt> --ref1 <a> --ref2 <b>` | Diff a prompt across two refs |
+| `ivault bundle --prompts prompts --out out/ivault.bundle.json --ref <tag>` | Build a deployable bundle |
+| `ivault resolve <ref>` / `ivault migrate prompts` | Resolve a ref to a SHA / migrate specs |
 
-## Where It Fits
+By default `eval` asserts against the **rendered prompt** — fully deterministic, no network. Add `--provider openai` to instead call a model and assert on its **reply** (needs `OPENAI_API_KEY`). Network is strictly opt-in, so CI stays deterministic unless you ask for a provider.
+
+## Where it fits
 | Approach | Versioned in Git | CI-friendly | Local runtime | Hosted dependency |
 | --- | --- | --- | --- | --- |
-| Prompt strings inside app code | Partial | Partial | Yes | No |
-| Prompts in a database or admin UI | Usually not | Usually not | No | Usually yes |
+| Prompt strings in app code | Partial | Partial | Yes | No |
+| Prompts in a database / admin UI | Usually not | Usually not | No | Usually yes |
 | Hosted prompt registry/platform | Varies | Varies | Usually no | Yes |
 | **InstructVault** | **Yes** | **Yes** | **Yes** | **No** |
 
-## System Flow
 ```mermaid
 flowchart LR
-  A[Prompt files] --> B[PR review]
-  B --> C[CI validate + eval]
-  C --> D[Tag, SHA, or bundle]
-  D --> E[App runtime]
-  E --> F[Rendered messages]
+  A[Prompt files] --> B[PR review] --> C[CI validate + eval] --> D[Tag, SHA, or bundle] --> E[App runtime]
 ```
 
-## Install For Development
+## Develop locally
 ```bash
 git clone https://github.com/05satyam/instruct_vault.git
 cd instruct_vault
-python -m venv .venv
-source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 python -m pytest
 ```
 
-## Docs
-- `docs/dropin_guide.md` - add InstructVault to an existing repo
-- `docs/cookbooks.md` - OpenAI, LangChain, LlamaIndex, RAG, policies, bundles
-- `docs/why_instructvault.md` - when to use InstructVault vs other approaches
-- `docs/spec.md` - prompt spec and validation rules
-- `docs/stability.md` - stable surfaces and compatibility expectations
-- `docs/ci.md` - CI setup and reports
-- `docs/governance.md` - CODEOWNERS and release guardrails
-- `docs/roadmap.md` - roadmap, in-scope, and out-of-scope work
-- `docs/performance.md` - performance principles, benchmarks (`benchmarks/`) and how to run them
-- `docs/playground.md` - optional local/hosted playground
-
-## Examples
-- `examples/ivault_demo_template/README.md`
-- `examples/llamaindex_demo/README.md`
-- `examples/notebooks/instructvault_colab.ipynb`
-- `examples/notebooks/instructvault_rag_colab.ipynb`
-- `examples/notebooks/instructvault_openai_colab.ipynb`
-- `examples/policies/policy_example.py`
-- `examples/policies/policy_pack.py`
+## Docs & examples
+- [`docs/dropin_guide.md`](docs/dropin_guide.md) — add InstructVault to an existing CI/CD repo
+- [`docs/cookbooks.md`](docs/cookbooks.md) — OpenAI, LangChain, LlamaIndex, RAG, policies, bundles
+- [`docs/spec.md`](docs/spec.md) — prompt spec and validation rules
+- [`docs/ci.md`](docs/ci.md) · [`docs/governance.md`](docs/governance.md) · [`docs/stability.md`](docs/stability.md) · [`docs/roadmap.md`](docs/roadmap.md) · [`docs/performance.md`](docs/performance.md)
+- Examples: [`examples/ivault_demo_template`](examples/ivault_demo_template/README.md), [`examples/llamaindex_demo`](examples/llamaindex_demo/README.md), [`examples/notebooks`](examples/notebooks), [`examples/policies`](examples/policies)
 
 ## License
 Apache-2.0

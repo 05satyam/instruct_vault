@@ -3,7 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
-No unreleased changes.
+### Added
+- `InstructVault.render()` now returns a `RenderResult` with provider adapters (`to_openai`, `to_anthropic`, `to_litellm`, `to_dict`) and the spec's model metadata. It still subclasses `list`, so existing message-iteration code is unchanged.
+- `RenderResult` is exported from the top-level package.
+- Opt-in output evals: `ivault eval --provider <name>` runs prompts through a model and asserts on the reply. Off by default to keep CI deterministic.
 
 ## [0.3.1] - 2026-05-05
 ### Added

@@ -10,6 +10,7 @@ from .diff import unified_diff
 from .eval import run_dataset, run_inline_tests
 from .io import load_dataset_jsonl, load_prompt_spec, load_prompt_dict
 from .policy import load_policy_module, run_spec_policy
+from .providers import get_provider
 from .junit import write_junit_xml
 import yaml
 from .render import check_required_vars, render_messages
@@ -169,18 +170,20 @@ def eval(prompt_path: str = typer.Argument(...),
          safe: bool = typer.Option(False, "--safe"),
          strict_vars: bool = typer.Option(False, "--strict-vars"),
          redact: bool = typer.Option(False, "--redact"),
-         policy: Optional[str] = typer.Option(None, "--policy")):
+         policy: Optional[str] = typer.Option(None, "--policy"),
+         provider: Optional[str] = typer.Option(None, "--provider", help="Run prompts through a model and assert on its reply (e.g. 'openai', 'mock'). Off by default for deterministic CI.")):
     store = PromptStore(repo_root=repo)
     spec = load_prompt_spec(store.read_text(prompt_path, ref=ref), allow_no_tests=False)
     pol = load_policy_module(policy)
+    prov = get_provider(provider)
 
-    ok1, r1 = run_inline_tests(spec, safe=safe, strict_vars=strict_vars, redact=redact, policy=pol)
+    ok1, r1 = run_inline_tests(spec, safe=safe, strict_vars=strict_vars, redact=redact, policy=pol, provider=prov)
     results = list(r1)
     ok = ok1
 
     if dataset is not None:
         rows = load_dataset_jsonl(dataset.read_text(encoding="utf-8"))
-        ok2, r2 = run_dataset(spec, rows, safe=safe, strict_vars=strict_vars, redact=redact, policy=pol)
+        ok2, r2 = run_dataset(spec, rows, safe=safe, strict_vars=strict_vars, redact=redact, policy=pol, provider=prov)
         ok = ok and ok2
         results.extend(r2)
 

@@ -1,10 +1,11 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 import json
 from .io import load_prompt_spec
 from .render import check_required_vars, render_messages
-from .spec import PromptMessage, PromptSpec
+from .result import RenderResult
+from .spec import PromptSpec
 from .store import PromptStore
 
 class InstructVault:
@@ -27,7 +28,19 @@ class InstructVault:
         if self.store is None:
             raise ValueError("No repo_root configured")
         return load_prompt_spec(self.store.read_text(prompt_path, ref=ref), allow_no_tests=True)
-    def render(self, prompt_path: str, vars: Dict[str, Any], ref: Optional[str] = None, *, safe: bool = False, strict_vars: bool = False, redact: bool = False) -> List[PromptMessage]:
+    def render(self, prompt_path: str, vars: Dict[str, Any], ref: Optional[str] = None, *, safe: bool = False, strict_vars: bool = False, redact: bool = False) -> RenderResult:
         spec = self.load_prompt(prompt_path, ref=ref)
         check_required_vars(spec, vars, safe=safe, strict_vars=strict_vars, redact=redact)
-        return render_messages(spec, vars, safe=safe, strict_vars=strict_vars, redact=redact)
+        msgs = render_messages(spec, vars, safe=safe, strict_vars=strict_vars, redact=redact)
+        md = spec.model_defaults.model_dump()
+        return RenderResult(
+            msgs,
+            model=md.get("model"),
+            provider=md.get("provider"),
+            temperature=md.get("temperature"),
+            top_p=md.get("top_p"),
+            max_tokens=md.get("max_tokens"),
+            prompt_name=spec.name,
+            prompt_path=prompt_path,
+            ref=ref,
+        )

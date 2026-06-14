@@ -176,6 +176,8 @@ def check_render(text: str, context: dict) -> list[str]:
 ## 14) OpenAI SDK integration
 **Goal:** keep prompts versioned in Git while using the standard OpenAI client at runtime.
 
+`render()` returns a `RenderResult` (a `list` of messages that also carries the spec's model metadata). Use `.to_openai()` to pass everything straight to the client:
+
 ```python
 from openai import OpenAI
 from instructvault import InstructVault
@@ -183,17 +185,18 @@ from instructvault import InstructVault
 client = OpenAI()
 vault = InstructVault(repo_root=".")
 
-messages = vault.render(
+result = vault.render(
     "prompts/support_reply.prompt.yml",
     vars={"ticket_text": "Order delayed", "customer_name": "Ava"},
     ref="prompts/v1.2.0",
 )
 
-response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{"role": m.role, "content": m.content} for m in messages],
-)
+# model/temperature/etc. come from the prompt spec; override by unpacking
+response = client.chat.completions.create(**result.to_openai())
 ```
+
+`result` is still a plain list of messages, so `for m in result: m.content` and
+`[{"role": m.role, "content": m.content} for m in result]` keep working too.
 
 ## 15) LangChain integration
 **Goal:** render prompts with InstructVault and pass plain chat messages into LangChain.
@@ -228,12 +231,19 @@ from instructvault import InstructVault
 llm = OpenAI(model="gpt-4o-mini")
 vault = InstructVault(repo_root=".")
 
-messages = vault.render(
+result = vault.render(
     "prompts/support_reply.prompt.yml",
     vars={"ticket_text": "Reset my password"},
 )
 
 response = llm.chat(
-    [ChatMessage(role=m.role, content=m.content) for m in messages]
+    [ChatMessage(role=m.role, content=m.content) for m in result]
 )
+```
+
+For LiteLLM (100+ models) the spec's `provider` and `model` are joined for you:
+
+```python
+import litellm
+response = litellm.completion(**result.to_litellm())
 ```
