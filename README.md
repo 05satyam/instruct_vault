@@ -74,6 +74,9 @@ response = client.chat.completions.create(**result.to_openai())
 | `ivault eval <prompt> --report out/report.json --junit out/junit.xml` | Run tests/datasets, emit reports |
 | `ivault diff <prompt> --ref1 <a> --ref2 <b>` | Diff a prompt across two refs |
 | `ivault bundle --prompts prompts --out out/ivault.bundle.json --ref <tag>` | Build a deployable bundle |
+| `ivault lock --prompts prompts --out ivault.lock.json` | Write a content-addressed lockfile |
+| `ivault verify ivault.lock.json` | Fail if prompts drift from the lockfile |
+| `ivault schema --out schemas/prompt.schema.json` | Emit the prompt JSON Schema |
 | `ivault resolve <ref>` / `ivault migrate prompts` | Resolve a ref to a SHA / migrate specs |
 
 By default `eval` asserts against the **rendered prompt** — fully deterministic, no network. Add `--provider openai` to instead call a model and assert on its **reply** (needs `OPENAI_API_KEY`). Network is strictly opt-in, so CI stays deterministic unless you ask for a provider.

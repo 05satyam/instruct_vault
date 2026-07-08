@@ -1,0 +1,332 @@
+{
+  "$defs": {
+    "AssertSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "contains_all": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contains All"
+        },
+        "contains_any": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contains Any"
+        },
+        "json_schema": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Json Schema"
+        },
+        "judge": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/JudgeSpec"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "matches": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Matches"
+        },
+        "not_contains": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Not Contains"
+        },
+        "not_matches": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Not Matches"
+        }
+      },
+      "title": "AssertSpec",
+      "type": "object"
+    },
+    "JudgeSpec": {
+      "additionalProperties": false,
+      "description": "LLM-as-judge assertion. Opt-in and only evaluated when a judge provider\nis supplied; otherwise the check is skipped so default CI stays deterministic.",
+      "properties": {
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "rubric": {
+          "title": "Rubric",
+          "type": "string"
+        },
+        "threshold": {
+          "default": 0.5,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Threshold",
+          "type": "number"
+        }
+      },
+      "required": [
+        "rubric"
+      ],
+      "title": "JudgeSpec",
+      "type": "object"
+    },
+    "ModelDefaults": {
+      "additionalProperties": true,
+      "properties": {
+        "max_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Tokens"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        },
+        "top_p": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Top P"
+        }
+      },
+      "title": "ModelDefaults",
+      "type": "object"
+    },
+    "PromptMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "system",
+            "user",
+            "assistant",
+            "tool"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "content"
+      ],
+      "title": "PromptMessage",
+      "type": "object"
+    },
+    "PromptTest": {
+      "additionalProperties": false,
+      "properties": {
+        "assert": {
+          "$ref": "#/$defs/AssertSpec"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "vars": {
+          "additionalProperties": true,
+          "title": "Vars",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name",
+        "assert"
+      ],
+      "title": "PromptTest",
+      "type": "object"
+    },
+    "VariableSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "optional": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Optional",
+          "type": "array"
+        },
+        "required": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Required",
+          "type": "array"
+        }
+      },
+      "title": "VariableSpec",
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/05satyam/instruct_vault/main/schemas/prompt.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    },
+    "messages": {
+      "items": {
+        "$ref": "#/$defs/PromptMessage"
+      },
+      "title": "Messages",
+      "type": "array"
+    },
+    "modelParameters": {
+      "$ref": "#/$defs/ModelDefaults"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "spec_version": {
+      "default": "1.0",
+      "title": "Spec Version",
+      "type": "string"
+    },
+    "tests": {
+      "items": {
+        "$ref": "#/$defs/PromptTest"
+      },
+      "title": "Tests",
+      "type": "array"
+    },
+    "variables": {
+      "$ref": "#/$defs/VariableSpec"
+    }
+  },
+  "required": [
+    "name",
+    "messages"
+  ],
+  "title": "PromptSpec",
+  "type": "object"
+}

@@ -1,0 +1,28 @@
+name: semantic-release
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: semantic-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    # Computes the next version from Conventional Commits, bumps pyproject,
+    # updates CHANGELOG, commits, and pushes a v* tag. The `release` workflow
+    # then builds and publishes to PyPI when that tag appears.
+    runs-on: ubuntu-latest
+    if: github.repository == '05satyam/instruct_vault'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Python Semantic Release
+        uses: python-semantic-release/python-semantic-release@v9.8.9
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}

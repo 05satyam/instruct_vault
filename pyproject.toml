@@ -1,6 +1,6 @@
 [project]
 name = "instructvault"
-version = "0.5.0"
+version = "0.6.0"
 description = "Git-first prompt registry + CI evals + lightweight runtime SDK (ivault)."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -42,6 +42,12 @@ ivault = "instructvault.cli:app"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/instructvault"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/instructvault/py.typed" = "instructvault/py.typed"
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
@@ -58,3 +64,17 @@ no_implicit_optional = true
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+commit_message = "chore(release): {version} [skip ci]"
+tag_format = "v{version}"
+# Versioning + tagging + changelog only. Publishing stays in release.yml (on tag).
+build_command = ""
+upload_to_vcs_release = false
+
+[tool.semantic_release.branches.main]
+match = "main"
+
+[tool.semantic_release.changelog]
+changelog_file = "CHANGELOG.md"

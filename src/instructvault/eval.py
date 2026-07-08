@@ -1,11 +1,12 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import json
 import re
 from .spec import AssertSpec, DatasetRow, PromptSpec
 from .render import check_required_vars, render_joined_text, render_messages
 from .policy import run_render_policy
+from .judge import judge_output
 from .providers import Provider
 
 @dataclass(frozen=True)
@@ -13,6 +14,7 @@ class TestResult:
     name: str
     passed: bool
     error: Optional[str] = None
+    skipped: bool = False
 
 def _match_assert(assert_spec: AssertSpec, text: str) -> bool:
     t = text.lower()
@@ -39,7 +41,30 @@ def _match_assert(assert_spec: AssertSpec, text: str) -> bool:
         jsonschema.validate(instance=obj, schema=assert_spec.json_schema)
     return ok
 
-def _produce_output(spec: PromptSpec, vars: dict, *, safe: bool, strict_vars: bool, redact: bool, provider: Optional[Provider]) -> str:
+def _evaluate(
+    assert_spec: AssertSpec, output: str, judge_provider: Optional[Provider]
+) -> Tuple[bool, bool, Optional[str]]:
+    """Return (passed, skipped, error) combining deterministic + judge checks."""
+    deterministic_ok = _match_assert(assert_spec, output)
+    if assert_spec.judge is None:
+        return deterministic_ok, False, None if deterministic_ok else "assertion failed"
+
+    if judge_provider is None:
+        # Judge portion cannot run without a provider.
+        if not assert_spec.has_deterministic():
+            return True, True, None  # nothing evaluated -> skipped, not failed
+        return deterministic_ok, False, None if deterministic_ok else "assertion failed"
+
+    judged_ok, score = judge_output(output, assert_spec.judge, judge_provider)
+    passed = deterministic_ok and judged_ok
+    if passed:
+        return True, False, None
+    if not judged_ok:
+        return False, False, f"judge score {score:.2f} < threshold {assert_spec.judge.threshold}"
+    return False, False, "assertion failed"
+
+
+def _produce_output(spec: PromptSpec, vars: Dict[str, Any], *, safe: bool, strict_vars: bool, redact: bool, provider: Optional[Provider]) -> str:
     """Rendered prompt text by default; the model's reply when a provider is given."""
     if provider is None:
         return render_joined_text(spec, vars, safe=safe, strict_vars=strict_vars, redact=redact)
@@ -48,7 +73,7 @@ def _produce_output(spec: PromptSpec, vars: dict, *, safe: bool, strict_vars: bo
     params = spec.model_defaults.model_dump(exclude_none=True)
     return provider(payload, params)
 
-def run_inline_tests(spec: PromptSpec, *, safe: bool = False, strict_vars: bool = False, redact: bool = False, policy: Optional[object] = None, provider: Optional[Provider] = None) -> Tuple[bool, List[TestResult]]:
+def run_inline_tests(spec: PromptSpec, *, safe: bool = False, strict_vars: bool = False, redact: bool = False, policy: Optional[object] = None, provider: Optional[Provider] = None, judge_provider: Optional[Provider] = None) -> Tuple[bool, List[TestResult]]:
     results: List[TestResult] = []
     all_ok = True
     for t in spec.tests:
@@ -60,15 +85,15 @@ def run_inline_tests(spec: PromptSpec, *, safe: bool = False, strict_vars: bool 
                 results.append(TestResult(t.name, False, "; ".join(errors)))
                 all_ok = False
                 continue
-            passed = _match_assert(t.assert_, out)
-            results.append(TestResult(t.name, passed))
+            passed, skipped, error = _evaluate(t.assert_, out, judge_provider)
+            results.append(TestResult(t.name, passed, error, skipped))
             all_ok = all_ok and passed
         except Exception as e:
             results.append(TestResult(t.name, False, str(e)))
             all_ok = False
     return all_ok, results
 
-def run_dataset(spec: PromptSpec, rows: List[DatasetRow], *, safe: bool = False, strict_vars: bool = False, redact: bool = False, policy: Optional[object] = None, provider: Optional[Provider] = None) -> Tuple[bool, List[TestResult]]:
+def run_dataset(spec: PromptSpec, rows: List[DatasetRow], *, safe: bool = False, strict_vars: bool = False, redact: bool = False, policy: Optional[object] = None, provider: Optional[Provider] = None, judge_provider: Optional[Provider] = None) -> Tuple[bool, List[TestResult]]:
     results: List[TestResult] = []
     all_ok = True
     for i, row in enumerate(rows, start=1):
@@ -81,8 +106,8 @@ def run_dataset(spec: PromptSpec, rows: List[DatasetRow], *, safe: bool = False,
                 results.append(TestResult(name, False, "; ".join(errors)))
                 all_ok = False
                 continue
-            passed = _match_assert(row.assert_, out)
-            results.append(TestResult(name, passed))
+            passed, skipped, error = _evaluate(row.assert_, out, judge_provider)
+            results.append(TestResult(name, passed, error, skipped))
             all_ok = all_ok and passed
         except Exception as e:
             results.append(TestResult(name, False, str(e)))

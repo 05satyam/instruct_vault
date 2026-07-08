@@ -7,10 +7,15 @@ from .spec import PromptMessage, PromptSpec
 _env = Environment(undefined=StrictUndefined, autoescape=False)
 
 _SECRET_PATTERNS = [
+    ("anthropic_key", re.compile(r"sk-ant-[A-Za-z0-9_-]{20,}")),
     ("openai_key", re.compile(r"sk-[A-Za-z0-9]{20,}")),
     ("aws_key", re.compile(r"AKIA[0-9A-Z]{16}")),
+    ("github_token", re.compile(r"gh[pousr]_[A-Za-z0-9]{20,}")),
+    ("google_api_key", re.compile(r"AIza[0-9A-Za-z_-]{35}")),
+    ("slack_token", re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}")),
     ("pypi_token", re.compile(r"pypi-[A-Za-z0-9]{20,}")),
-    ("generic_token", re.compile(r"(?:api|token|secret)[=_:\\s-]{1,}[A-Za-z0-9\\-]{16,}", re.IGNORECASE)),
+    ("private_key_block", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----")),
+    ("generic_token", re.compile(r"(?:api|token|secret)[=_:\s-]{1,}[A-Za-z0-9-]{16,}", re.IGNORECASE)),
 ]
 
 def _scan_for_secrets(text: str) -> List[str]:

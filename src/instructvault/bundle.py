@@ -16,7 +16,10 @@ class BundlePrompt:
 
 def _list_files_at_ref(repo_root: Path, ref: str, rel_dir: str) -> List[str]:
     cmd = ["git", "-C", str(repo_root), "ls-tree", "-r", "--name-only", ref, rel_dir]
-    res = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+    except subprocess.TimeoutExpired as e:
+        raise TimeoutError(f"git ls-tree timed out after 30s at ref {ref}") from e
     if res.returncode != 0:
         raise ValueError(res.stderr.strip() or f"Could not list files at ref {ref}")
     return [line.strip() for line in res.stdout.splitlines() if line.strip()]

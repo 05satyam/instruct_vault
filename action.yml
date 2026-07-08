@@ -1,0 +1,56 @@
+name: "InstructVault"
+description: "Validate, evaluate, and (optionally) lock-check prompts with InstructVault."
+branding:
+  icon: "check-circle"
+  color: "purple"
+inputs:
+  prompts:
+    description: "Path to the prompts directory."
+    required: false
+    default: "prompts"
+  version:
+    description: "InstructVault version to install (e.g. '0.6.0'). Empty installs the latest."
+    required: false
+    default: ""
+  eval:
+    description: "Run `ivault eval` on every prompt (deterministic; no network)."
+    required: false
+    default: "true"
+  lockfile:
+    description: "Path to a lockfile to verify against. Skipped if empty or missing."
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - name: Install InstructVault
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.version }}" ]; then
+          python -m pip install "instructvault==${{ inputs.version }}"
+        else
+          python -m pip install instructvault
+        fi
+    - name: Validate prompts
+      shell: bash
+      run: ivault validate "${{ inputs.prompts }}"
+    - name: Evaluate prompts
+      if: ${{ inputs.eval == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        find "${{ inputs.prompts }}" -type f \( -name '*.prompt.yml' -o -name '*.prompt.yaml' -o -name '*.prompt.json' \) -print0 \
+          | while IFS= read -r -d '' f; do
+              echo "::group::eval $f"
+              ivault eval "$f"
+              echo "::endgroup::"
+            done
+    - name: Verify lockfile
+      if: ${{ inputs.lockfile != '' }}
+      shell: bash
+      run: |
+        if [ -f "${{ inputs.lockfile }}" ]; then
+          ivault verify "${{ inputs.lockfile }}" --prompts "${{ inputs.prompts }}"
+        else
+          echo "Lockfile '${{ inputs.lockfile }}' not found; skipping verify."
+        fi

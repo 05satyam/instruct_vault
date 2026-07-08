@@ -7,7 +7,8 @@ from .eval import TestResult
 def write_junit_xml(*, suite_name: str, results: Iterable[TestResult], out_path: str, timestamp: Optional[str] = None) -> None:
     results = list(results)
     tests = len(results)
-    failures = sum(1 for r in results if not r.passed)
+    failures = sum(1 for r in results if not r.passed and not r.skipped)
+    skipped = sum(1 for r in results if r.skipped)
     ts = timestamp or datetime.now(timezone.utc).isoformat()
 
     suite = ET.Element("testsuite", {
@@ -15,13 +16,16 @@ def write_junit_xml(*, suite_name: str, results: Iterable[TestResult], out_path:
         "tests": str(tests),
         "failures": str(failures),
         "errors": "0",
+        "skipped": str(skipped),
         "time": "0",
         "timestamp": ts,
     })
 
     for r in results:
         case = ET.SubElement(suite, "testcase", {"name": r.name, "classname": suite_name, "time": "0"})
-        if not r.passed:
+        if r.skipped:
+            ET.SubElement(case, "skipped", {"message": "judge assertion skipped (no judge provider)"})
+        elif not r.passed:
             f = ET.SubElement(case, "failure", {"message": r.error or "assertion failed", "type": "AssertionError"})
             f.text = r.error or "assertion failed"
 

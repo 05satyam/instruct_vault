@@ -1,0 +1,7 @@
+- id: ivault-validate
+  name: InstructVault validate prompts
+  description: "Validate changed prompt spec files against the InstructVault schema and rules."
+  entry: ivault validate
+  language: python
+  files: '\.prompt\.(ya?ml|json)$'
+  pass_filenames: true
