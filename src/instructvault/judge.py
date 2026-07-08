@@ -18,14 +18,43 @@ _JUDGE_SYSTEM = (
     "Reply with ONLY the number, e.g. 0.8."
 )
 
-_SCORE_RE = re.compile(r"(?:0(?:\.\d+)?|1(?:\.0+)?|\.\d+)")
+_PERCENT_RE = re.compile(r"(\d+(?:\.\d+)?)\s*%")
+_FRACTION_RE = re.compile(r"(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)")
+_NUMBER_RE = re.compile(r"\d+(?:\.\d+)?")
+
+
+def _clamp(value: float) -> float:
+    return max(0.0, min(1.0, value))
 
 
 def _parse_score(text: str) -> float:
-    match = _SCORE_RE.search(text.strip())
-    if match is None:
-        raise ValueError(f"Could not parse a 0.0-1.0 score from judge output: {text!r}")
-    return max(0.0, min(1.0, float(match.group(0))))
+    """Normalize a judge reply to a 0.0-1.0 score.
+
+    Accepts floats (``0.8``), percentages (``80%``), fractions (``8/10``), and
+    bare integers on a 0-10 scale (``8`` -> ``0.8``).
+    """
+    s = text.strip()
+
+    m = _PERCENT_RE.search(s)
+    if m:
+        return _clamp(float(m.group(1)) / 100.0)
+
+    m = _FRACTION_RE.search(s)
+    if m:
+        denominator = float(m.group(2))
+        if denominator == 0:
+            raise ValueError(f"Judge returned a zero-denominator fraction: {text!r}")
+        return _clamp(float(m.group(1)) / denominator)
+
+    m = _NUMBER_RE.search(s)
+    if m:
+        value = float(m.group(0))
+        if value > 1.0:
+            # Treat values above 1 as a 0-10 scale (e.g. "8" -> 0.8).
+            value = value / 10.0 if value <= 10.0 else 1.0
+        return _clamp(value)
+
+    raise ValueError(f"Could not parse a 0.0-1.0 score from judge output: {text!r}")
 
 
 def judge_output(output: str, judge: JudgeSpec, provider: Provider) -> tuple[bool, float]:

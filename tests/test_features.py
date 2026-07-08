@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from instructvault import InstructVault
 from instructvault.eval import run_inline_tests
 from instructvault.io import load_prompt_spec
@@ -169,6 +171,72 @@ def test_judge_fails_with_low_score() -> None:
     assert ok is False
     assert results[0].passed is False
     assert "judge score" in (results[0].error or "")
+
+
+@pytest.mark.parametrize(
+    ("reply", "expected"),
+    [
+        ("0.8", 0.8),
+        ("80%", 0.8),
+        ("8/10", 0.8),
+        ("I rate this 8 out of 10", 0.8),
+        ("9.5/10", 0.95),
+        ("1", 1.0),
+        ("10/10", 1.0),
+        ("150%", 1.0),  # clamped
+    ],
+)
+def test_judge_score_formats(reply: str, expected: float) -> None:
+    from instructvault.judge import _parse_score
+
+    assert abs(_parse_score(reply) - expected) < 1e-9
+
+
+def test_judge_score_unparseable_raises() -> None:
+    from instructvault.judge import _parse_score
+
+    with pytest.raises(ValueError, match="Could not parse"):
+        _parse_score("no number here")
+
+
+_JSON_SCHEMA_YAML = """
+spec_version: "1.0"
+name: schema_check
+variables:
+  required: [payload]
+messages:
+  - role: user
+    content: "{{ payload }}"
+tests:
+  - name: valid
+    vars: { payload: '{"n": 5}' }
+    assert:
+      json_schema:
+        type: object
+        properties: { n: { type: integer } }
+        required: [n]
+  - name: invalid
+    vars: { payload: '{"n": "not-an-int"}' }
+    assert:
+      json_schema:
+        type: object
+        properties: { n: { type: integer } }
+        required: [n]
+"""
+
+
+def test_json_schema_failure_is_clean_not_raised() -> None:
+    from instructvault.providers import _mock_provider
+
+    spec = load_prompt_spec(_JSON_SCHEMA_YAML)
+    # The mock provider echoes the user message (pure JSON) so the schema applies.
+    ok, results = run_inline_tests(spec, provider=_mock_provider)
+    by_name = {r.name: r for r in results}
+    assert by_name["valid"].passed is True
+    # A schema mismatch is a normal failure, not a raised exception.
+    assert by_name["invalid"].passed is False
+    assert by_name["invalid"].error == "assertion failed"
+    assert ok is False
 
 
 # ----------------------------- schema --------------------------------------

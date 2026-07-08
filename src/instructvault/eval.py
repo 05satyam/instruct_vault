@@ -41,7 +41,12 @@ def _match_assert(assert_spec: AssertSpec, text: str) -> bool:
             import jsonschema  # type: ignore
         except Exception as e:
             raise ValueError("jsonschema is required for json_schema assertions") from e
-        jsonschema.validate(instance=obj, schema=assert_spec.json_schema)
+        try:
+            jsonschema.validate(instance=obj, schema=assert_spec.json_schema)
+        except jsonschema.ValidationError:
+            # Instance did not match the schema -> a normal assertion failure.
+            return False
+        # Note: an invalid schema (SchemaError) is an author error and still raises.
     return ok
 
 def _evaluate(
