@@ -196,3 +196,29 @@ def test_validate_policy_hook(tmp_path: Path) -> None:
     )
     res = runner.invoke(app, ["validate", "prompts", "--repo", str(tmp_path), "--policy", str(policy)])
     assert res.exit_code != 0
+
+def test_verify_missing_lockfile(tmp_path: Path) -> None:
+    _git_init(tmp_path)
+
+    res = runner.invoke(
+        app,
+        ["verify", str(tmp_path / "missing.lock.json")],
+    )
+
+    assert res.exit_code != 0
+    assert "Lockfile not found" in res.output
+
+
+def test_verify_invalid_lockfile(tmp_path: Path) -> None:
+    _git_init(tmp_path)
+
+    bad = tmp_path / "bad.lock.json"
+    bad.write_text("{bad json", encoding="utf-8")
+
+    res = runner.invoke(
+        app,
+        ["verify", str(bad)],
+    )
+
+    assert res.exit_code != 0
+    assert "Invalid lockfile" in res.output
