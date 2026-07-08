@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 No unreleased changes.
 
+## [0.6.1] - 2026-07-08
+### Fixed
+- Judge score parsing now accepts percentages (`80%`), fractions (`8/10`), and bare 0–10 integers (`8` → `0.8`) in addition to plain floats, normalizing them to a 0.0–1.0 score.
+- `json_schema` assertions now return a clean test failure when output does not match the schema, instead of raising. Invalid schemas (author errors) still raise.
+
 ## [0.6.0] - 2026-07-08
 ### Added
 - **Lockfiles** for reproducible deployments: `ivault lock` writes a deterministic, content-addressed `ivault.lock.json`, and `ivault verify` fails on drift. Hashing is over the parsed spec, so YAML/JSON format and CRLF/LF line endings never cause false drift.
