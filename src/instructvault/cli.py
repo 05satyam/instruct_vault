@@ -191,13 +191,9 @@ def verify(lockfile: Path = typer.Argument(..., help="Path to ivault.lock.json")
     try:
         lock_data = json.loads(lockfile.read_text(encoding="utf-8"))
     except FileNotFoundError as e:
-        raise typer.BadParameter(
-            f"Lockfile not found: {lockfile}"
-        ) from e
+        raise typer.BadParameter(f"Lockfile not found: {lockfile}") from e
     except json.JSONDecodeError as e:
-        raise typer.BadParameter(
-            f"Invalid lockfile: {lockfile}"
-    ) from e
+        raise typer.BadParameter(f"Invalid lockfile: {lockfile}") from e
     ok, diffs = verify_lock(lock_data, repo_root=repo, prompts_dir=prompts_dir, ref=ref)
     if json_out:
         rprint(json.dumps({"ok": ok, "drift": diffs}))
