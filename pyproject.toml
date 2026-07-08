@@ -76,17 +76,3 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
-
-[tool.semantic_release]
-version_toml = ["pyproject.toml:project.version"]
-commit_message = "chore(release): {version} [skip ci]"
-tag_format = "v{version}"
-# Versioning + tagging + changelog only. Publishing stays in release.yml (on tag).
-build_command = ""
-upload_to_vcs_release = false
-
-[tool.semantic_release.branches.main]
-match = "main"
-
-[tool.semantic_release.changelog]
-changelog_file = "CHANGELOG.md"

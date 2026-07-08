@@ -30,9 +30,24 @@ so local results match CI exactly.
 - Run `ruff`, `mypy`, and `pytest` locally before pushing.
 - Update docs if user-facing behavior changes.
 - Use [Conventional Commits](https://www.conventionalcommits.org/) for messages
-  (`feat:`, `fix:`, `docs:`, `chore:` …) — releases and the changelog are derived
-  from them.
+  (`feat:`, `fix:`, `docs:`, `chore:` …) — they guide the semantic-version bump
+  and the changelog entry a maintainer writes at release time.
 - If you change the prompt spec, regenerate the schema: `ivault schema --out schemas/prompt.schema.json`.
+
+## Cutting a release (maintainers)
+
+Releases are manual because `main` is a protected branch that no CI bot can push
+to. To ship a version:
+
+1. Pick the next version per SemVer, based on the Conventional Commits since the
+   last tag (`fix:` → patch, `feat:` → minor, breaking → major).
+2. Bump `version` in `pyproject.toml`.
+3. Add a dated section to `CHANGELOG.md` describing the changes.
+4. Commit as `chore(release): X.Y.Z` and push to `main`.
+5. Tag and push: `git tag vX.Y.Z <commit> && git push origin vX.Y.Z`.
+
+Pushing the `v*` tag triggers `.github/workflows/release.yml`, which builds the
+package and publishes it to PyPI (`--skip-existing`, so re-runs are safe).
 
 ## How to add a model provider
 

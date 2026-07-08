@@ -12,8 +12,11 @@ This document explains which parts of InstructVault are intended to be stable fo
 
 ## Versioning and releases
 - The project follows [Semantic Versioning](https://semver.org/).
-- Releases are driven by [Conventional Commits](https://www.conventionalcommits.org/):
-  `fix:` → patch, `feat:` → minor, `feat!:`/`BREAKING CHANGE:` → major.
+- [Conventional Commits](https://www.conventionalcommits.org/) guide the version
+  bump: `fix:` → patch, `feat:` → minor, `feat!:`/`BREAKING CHANGE:` → major.
+- Releases are cut manually by a maintainer (see `CONTRIBUTING.md` → "Cutting a
+  release"). Pushing a `v*` tag triggers the `release` workflow, which builds and
+  publishes to PyPI.
 - The published package ships a `py.typed` marker; type hints are part of the API.
 
 ## Compatibility expectations

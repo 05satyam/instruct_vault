@@ -3,7 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
-No unreleased changes.
+### Changed
+- Releases are now cut manually by tagging (`vX.Y.Z`), which triggers the PyPI
+  publish workflow. The `semantic-release` workflow was removed because it cannot
+  push version bumps to the protected `main` branch. Conventional Commits still
+  guide the SemVer bump and changelog. See `CONTRIBUTING.md` → "Cutting a release".
 
 ## [0.6.1] - 2026-07-08
 ### Fixed

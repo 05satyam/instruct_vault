@@ -7,7 +7,7 @@ This roadmap is intentionally narrow. InstructVault works best when the core sta
 - Thread-safe runtime spec caching in the SDK (immutable refs cached; worktree revalidated by mtime).
 - Opt-in LLM-as-judge assertions (`assert.judge`) that stay skipped unless a judge provider is supplied.
 - Published JSON Schema (`ivault schema`) for editor autocomplete.
-- Reusable GitHub Action, pre-commit hook, cross-OS/Python CI matrix, and semantic-release.
+- Reusable GitHub Action, pre-commit hook, cross-OS/Python CI matrix, and tag-triggered PyPI publishing.
 
 ## Near-term priorities
 - Stronger end-to-end examples for common LLM stacks
