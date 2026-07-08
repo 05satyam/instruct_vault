@@ -7,6 +7,9 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/instructvault.svg)](https://pypi.org/project/instructvault/)
 [![CI](https://github.com/05satyam/instruct_vault/actions/workflows/ci.yml/badge.svg)](https://github.com/05satyam/instruct_vault/actions/workflows/ci.yml)
 [![Release](https://github.com/05satyam/instruct_vault/actions/workflows/release.yml/badge.svg)](https://github.com/05satyam/instruct_vault/actions/workflows/release.yml)
+[![Downloads](https://img.shields.io/pypi/dm/instructvault.svg)](https://pypi.org/project/instructvault/)
+[![License](https://img.shields.io/pypi/l/instructvault.svg)](https://github.com/05satyam/instruct_vault/blob/main/LICENSE)
+[![Types](https://img.shields.io/badge/types-py.typed-blue.svg)](https://peps.python.org/pep-0561/)
 
 **Version prompts in Git, test them in CI, load them locally at runtime.**
 
@@ -106,6 +109,7 @@ python -m pytest
 ## Docs & examples
 - [`docs/dropin_guide.md`](docs/dropin_guide.md) — add InstructVault to an existing CI/CD repo
 - [`docs/cookbooks.md`](docs/cookbooks.md) — OpenAI, LangChain, LlamaIndex, RAG, policies, bundles
+- [`docs/lockfiles_and_judge.md`](docs/lockfiles_and_judge.md) — reproducible releases + LLM-as-judge evals
 - [`docs/spec.md`](docs/spec.md) — prompt spec and validation rules
 - [`docs/ci.md`](docs/ci.md) · [`docs/governance.md`](docs/governance.md) · [`docs/stability.md`](docs/stability.md) · [`docs/roadmap.md`](docs/roadmap.md) · [`docs/performance.md`](docs/performance.md)
 - Examples: [`examples/ivault_demo_template`](examples/ivault_demo_template/README.md), [`examples/llamaindex_demo`](examples/llamaindex_demo/README.md), [`examples/notebooks`](examples/notebooks), [`examples/policies`](examples/policies)

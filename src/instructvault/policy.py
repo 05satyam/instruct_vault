@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 import importlib.util
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-def load_policy_module(path: Optional[str]) -> Optional[object]:
+
+def load_policy_module(path: str | None) -> object | None:
     if not path:
         return None
     p = Path(path)
@@ -14,7 +16,7 @@ def load_policy_module(path: Optional[str]) -> Optional[object]:
     spec.loader.exec_module(mod)
     return mod
 
-def run_spec_policy(mod: Optional[object], spec_dict: Dict[str, Any]) -> List[str]:
+def run_spec_policy(mod: object | None, spec_dict: dict[str, Any]) -> list[str]:
     if mod is None:
         return []
     fn = getattr(mod, "check_spec", None)
@@ -23,7 +25,7 @@ def run_spec_policy(mod: Optional[object], spec_dict: Dict[str, Any]) -> List[st
     res = fn(spec_dict)
     return list(res) if res else []
 
-def run_render_policy(mod: Optional[object], text: str, context: Dict[str, Any]) -> List[str]:
+def run_render_policy(mod: object | None, text: str, context: dict[str, Any]) -> list[str]:
     if mod is None:
         return []
     fn = getattr(mod, "check_render", None)

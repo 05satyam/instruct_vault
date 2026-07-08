@@ -1,7 +1,10 @@
 from __future__ import annotations
-from typing import Any, Dict, List
+
 import re
+from typing import Any
+
 from jinja2 import Environment, StrictUndefined
+
 from .spec import PromptMessage, PromptSpec
 
 _env = Environment(undefined=StrictUndefined, autoescape=False)
@@ -18,20 +21,20 @@ _SECRET_PATTERNS = [
     ("generic_token", re.compile(r"(?:api|token|secret)[=_:\s-]{1,}[A-Za-z0-9-]{16,}", re.IGNORECASE)),
 ]
 
-def _scan_for_secrets(text: str) -> List[str]:
-    hits: List[str] = []
+def _scan_for_secrets(text: str) -> list[str]:
+    hits: list[str] = []
     for name, pat in _SECRET_PATTERNS:
         if pat.search(text):
             hits.append(name)
     return hits
 
-def check_required_vars(spec: PromptSpec, vars: Dict[str, Any], *, safe: bool = False, strict_vars: bool = False, redact: bool = False) -> None:
+def check_required_vars(spec: PromptSpec, vars: dict[str, Any], *, safe: bool = False, strict_vars: bool = False, redact: bool = False) -> None:
     missing = [k for k in spec.variables.required if k not in vars]
     if missing:
         raise ValueError(f"Missing required vars: {missing}")
     if strict_vars:
         allowed = set(spec.variables.required + spec.variables.optional)
-        extra = [k for k in vars.keys() if k not in allowed]
+        extra = [k for k in vars if k not in allowed]
         if extra:
             raise ValueError(f"Unexpected vars: {extra}")
     if safe and not redact:
@@ -41,8 +44,8 @@ def check_required_vars(spec: PromptSpec, vars: Dict[str, Any], *, safe: bool = 
                 if hits:
                     raise ValueError(f"Potential secret detected in vars: {hits}")
 
-def render_messages(spec: PromptSpec, vars: Dict[str, Any], *, safe: bool = False, strict_vars: bool = False, redact: bool = False) -> List[PromptMessage]:
-    rendered: List[PromptMessage] = []
+def render_messages(spec: PromptSpec, vars: dict[str, Any], *, safe: bool = False, strict_vars: bool = False, redact: bool = False) -> list[PromptMessage]:
+    rendered: list[PromptMessage] = []
     for m in spec.messages:
         tmpl = _env.from_string(m.content)
         content = tmpl.render(**vars)
@@ -57,6 +60,6 @@ def render_messages(spec: PromptSpec, vars: Dict[str, Any], *, safe: bool = Fals
         rendered.append(PromptMessage(role=m.role, content=content))
     return rendered
 
-def render_joined_text(spec: PromptSpec, vars: Dict[str, Any], *, safe: bool = False, strict_vars: bool = False, redact: bool = False) -> str:
+def render_joined_text(spec: PromptSpec, vars: dict[str, Any], *, safe: bool = False, strict_vars: bool = False, redact: bool = False) -> str:
     msgs = render_messages(spec, vars, safe=safe, strict_vars=strict_vars, redact=redact)
     return "\n\n".join([f"{m.role}: {m.content}" for m in msgs])

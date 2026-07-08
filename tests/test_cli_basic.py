@@ -1,9 +1,13 @@
 from __future__ import annotations
+
 import json
-import subprocess
 import shutil
+import subprocess
 from pathlib import Path
+
+import pytest
 from typer.testing import CliRunner
+
 from instructvault.cli import app
 
 runner = CliRunner()
@@ -156,11 +160,8 @@ def test_bundle_ref_param_with_bundle_path_errors(tmp_path: Path) -> None:
     runner.invoke(app, ["bundle", "--repo", str(tmp_path), "--out", str(out_bundle)])
     from instructvault import InstructVault
     vault = InstructVault(bundle_path=out_bundle)
-    try:
+    with pytest.raises(ValueError, match="ref is not supported"):
         vault.render("prompts/hello_world.prompt.yml", vars={"name": "Ava"}, ref="prompts/v1.0.0")
-        assert False, "expected error"
-    except Exception:
-        assert True
 
 def test_render_strict_vars_blocks_extra(tmp_path: Path) -> None:
     _git_init(tmp_path)

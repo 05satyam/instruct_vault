@@ -1,0 +1,31 @@
+spec_version: "1.0"
+name: judged_summary
+description: >
+  Demonstrates an opt-in LLM-as-judge assertion alongside a deterministic one.
+  The deterministic check runs everywhere; the judge check only runs when you
+  pass `--judge-provider`, and is skipped (not failed) otherwise so default CI
+  stays deterministic.
+modelParameters:
+  model: gpt-4o-mini
+  provider: openai
+  temperature: 0.2
+variables:
+  required: [article]
+messages:
+  - role: system
+    content: "You are a precise summarizer. Summaries must be one sentence."
+  - role: user
+    content: |
+      Summarize the following article in a single sentence:
+      {{ article }}
+tests:
+  - name: mentions_topic
+    vars:
+      article: "The city council approved a new budget for public transit expansion."
+    assert:
+      # Deterministic: always evaluated, no network.
+      contains_any: ["transit", "budget", "council"]
+      # Semantic: only evaluated when `--judge-provider` is supplied.
+      judge:
+        rubric: "The summary is a single, accurate sentence capturing the main point."
+        threshold: 0.7

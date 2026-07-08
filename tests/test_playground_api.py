@@ -1,13 +1,18 @@
 from __future__ import annotations
+
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
+
 from fastapi.testclient import TestClient
+
 from instructvault.scaffold import init_repo
+
 _ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(_ROOT / "playground"))
 from ivault_playground.app import app  # type: ignore  # noqa: E402
+
 
 def _setup_repo(tmp_path: Path) -> Path:
     _git_init(tmp_path)

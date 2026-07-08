@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, cast
 
 from .bundle import collect_prompts
 from .spec import PromptSpec
@@ -30,7 +30,7 @@ def canonical_spec_hash(spec: PromptSpec) -> str:
     return f"sha256:{digest}"
 
 
-def build_lock(repo_root: Path, prompts_dir: Path, ref: Optional[str]) -> Dict[str, Any]:
+def build_lock(repo_root: Path, prompts_dir: Path, ref: str | None) -> dict[str, Any]:
     prompts = collect_prompts(repo_root, prompts_dir, ref)
     entries = [
         {"path": p.path, "name": p.spec.name, "spec_sha256": canonical_spec_hash(p.spec)}
@@ -44,33 +44,33 @@ def build_lock(repo_root: Path, prompts_dir: Path, ref: Optional[str]) -> Dict[s
     }
 
 
-def dumps_lock(lock: Dict[str, Any]) -> str:
+def dumps_lock(lock: dict[str, Any]) -> str:
     """Deterministic serialization: sorted keys, trailing newline, no timestamps."""
     return json.dumps(lock, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
 
 
 def write_lock(
-    out_path: Path, *, repo_root: Path, prompts_dir: Path, ref: Optional[str]
-) -> Dict[str, Any]:
+    out_path: Path, *, repo_root: Path, prompts_dir: Path, ref: str | None
+) -> dict[str, Any]:
     lock = build_lock(repo_root, prompts_dir, ref)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(dumps_lock(lock), encoding="utf-8")
     return lock
 
 
-def _entry_map(prompts: List[Dict[str, Any]]) -> Dict[str, str]:
+def _entry_map(prompts: list[dict[str, Any]]) -> dict[str, str]:
     return {str(e["path"]): str(e["spec_sha256"]) for e in prompts}
 
 
 def verify_lock(
-    lock: Dict[str, Any], *, repo_root: Path, prompts_dir: Path, ref: Optional[str]
-) -> Tuple[bool, List[str]]:
+    lock: dict[str, Any], *, repo_root: Path, prompts_dir: Path, ref: str | None
+) -> tuple[bool, list[str]]:
     """Compare a lockfile against the current prompts. Returns (ok, human diffs)."""
     current = build_lock(repo_root, prompts_dir, ref)
-    locked_entries = _entry_map(cast(List[Dict[str, Any]], lock.get("prompts", [])))
-    current_entries = _entry_map(cast(List[Dict[str, Any]], current["prompts"]))
+    locked_entries = _entry_map(cast(list[dict[str, Any]], lock.get("prompts", [])))
+    current_entries = _entry_map(cast(list[dict[str, Any]], current["prompts"]))
 
-    diffs: List[str] = []
+    diffs: list[str] = []
     for path in sorted(set(current_entries) - set(locked_entries)):
         diffs.append(f"added: {path}")
     for path in sorted(set(locked_entries) - set(current_entries)):

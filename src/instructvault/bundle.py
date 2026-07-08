@@ -1,20 +1,21 @@
 from __future__ import annotations
+
 import json
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Optional
 
 from .io import load_prompt_spec
 from .spec import PromptSpec
 from .store import PromptStore
+
 
 @dataclass(frozen=True)
 class BundlePrompt:
     path: str
     spec: PromptSpec
 
-def _list_files_at_ref(repo_root: Path, ref: str, rel_dir: str) -> List[str]:
+def _list_files_at_ref(repo_root: Path, ref: str, rel_dir: str) -> list[str]:
     cmd = ["git", "-C", str(repo_root), "ls-tree", "-r", "--name-only", ref, rel_dir]
     try:
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -28,16 +29,16 @@ def _is_prompt_file(path: str) -> bool:
     lower = path.lower()
     return lower.endswith(".prompt.yml") or lower.endswith(".prompt.yaml") or lower.endswith(".prompt.json")
 
-def collect_prompts(repo_root: Path, prompts_dir: Path, ref: Optional[str]) -> List[BundlePrompt]:
+def collect_prompts(repo_root: Path, prompts_dir: Path, ref: str | None) -> list[BundlePrompt]:
     store = PromptStore(repo_root)
-    prompts: List[BundlePrompt] = []
+    prompts: list[BundlePrompt] = []
     if ref is None:
         if not prompts_dir.exists():
             raise FileNotFoundError(f"Prompts directory not found: {prompts_dir}")
         try:
             prompts_dir.relative_to(repo_root)
-        except Exception:
-            raise ValueError("prompts_dir must be within repo_root")
+        except Exception as e:
+            raise ValueError("prompts_dir must be within repo_root") from e
         for p in sorted(prompts_dir.rglob("*.prompt.y*ml")):
             rel_path = p.relative_to(repo_root).as_posix()
             spec = load_prompt_spec(p.read_text(encoding="utf-8"), allow_no_tests=True)
@@ -60,7 +61,7 @@ def collect_prompts(repo_root: Path, prompts_dir: Path, ref: Optional[str]) -> L
         raise ValueError(f"No prompt files found at ref {ref} in {rel_dir}")
     return prompts
 
-def write_bundle(out_path: Path, *, repo_root: Path, prompts_dir: Path, ref: Optional[str]) -> None:
+def write_bundle(out_path: Path, *, repo_root: Path, prompts_dir: Path, ref: str | None) -> None:
     prompts = collect_prompts(repo_root, prompts_dir, ref)
     payload = {
         "bundle_version": "1.0",

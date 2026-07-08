@@ -8,14 +8,14 @@ at the published schema for autocompletion and inline validation via::
 """
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from .spec import PromptSpec
 
 SCHEMA_ID = "https://raw.githubusercontent.com/05satyam/instruct_vault/main/schemas/prompt.schema.json"
 
 
-def prompt_json_schema() -> Dict[str, Any]:
+def prompt_json_schema() -> dict[str, Any]:
     schema = PromptSpec.model_json_schema(by_alias=True)
     schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
     schema["$id"] = SCHEMA_ID

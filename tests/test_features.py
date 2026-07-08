@@ -4,8 +4,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from instructvault import InstructVault
 from instructvault.eval import run_inline_tests
 from instructvault.io import load_prompt_spec
@@ -188,6 +186,29 @@ def test_schema_is_deterministic() -> None:
 
 
 # ----------------------------- multi-path validate -------------------------
+
+def test_init_generates_verifiable_lockfile(tmp_path: Path) -> None:
+    from instructvault.scaffold import init_repo
+
+    init_repo(tmp_path)
+    lockfile = tmp_path / "ivault.lock.json"
+    assert lockfile.exists()
+    ok, diffs = verify_lock(
+        json.loads(lockfile.read_text()),
+        repo_root=tmp_path,
+        prompts_dir=tmp_path / "prompts",
+        ref=None,
+    )
+    assert ok and diffs == []
+
+
+def test_judge_example_prompt_is_valid_and_deterministic() -> None:
+    example = Path(__file__).resolve().parent.parent / "examples" / "prompts" / "judged_summary.prompt.yml"
+    spec = load_prompt_spec(example.read_text(encoding="utf-8"), allow_no_tests=False)
+    ok, results = run_inline_tests(spec)  # no judge provider -> deterministic only
+    assert ok is True
+    assert results[0].skipped is False  # the contains_any check still ran
+
 
 def test_validate_accepts_multiple_paths(tmp_path: Path) -> None:
     from typer.testing import CliRunner

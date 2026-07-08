@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 import json
 import threading
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any
 
 from .io import load_prompt_spec
 from .render import check_required_vars, render_messages
@@ -22,8 +23,8 @@ class InstructVault:
 
     def __init__(
         self,
-        repo_root: Optional[Union[str, Path]] = None,
-        bundle_path: Optional[Union[str, Path]] = None,
+        repo_root: str | Path | None = None,
+        bundle_path: str | Path | None = None,
         *,
         cache: bool = True,
     ):
@@ -36,19 +37,19 @@ class InstructVault:
             self.bundle = {p["path"]: PromptSpec.model_validate(p["spec"]) for p in data.get("prompts", [])}
         self._cache_enabled = cache
         # key -> (spec, worktree_mtime_ns or None for pinned refs)
-        self._cache: Dict[Tuple[str, Optional[str]], Tuple[PromptSpec, Optional[int]]] = {}
+        self._cache: dict[tuple[str, str | None], tuple[PromptSpec, int | None]] = {}
         self._lock = threading.Lock()
 
     def clear_cache(self) -> None:
         with self._lock:
             self._cache.clear()
 
-    def _load_uncached(self, prompt_path: str, ref: Optional[str]) -> PromptSpec:
+    def _load_uncached(self, prompt_path: str, ref: str | None) -> PromptSpec:
         if self.store is None:
             raise ValueError("No repo_root configured")
         return load_prompt_spec(self.store.read_text(prompt_path, ref=ref), allow_no_tests=True)
 
-    def load_prompt(self, prompt_path: str, ref: Optional[str] = None) -> PromptSpec:
+    def load_prompt(self, prompt_path: str, ref: str | None = None) -> PromptSpec:
         if self.bundle is not None:
             if ref is not None:
                 raise ValueError("ref is not supported when using bundle_path")
@@ -75,7 +76,7 @@ class InstructVault:
         with self._lock:
             self._cache[key] = (spec, stamp)
         return spec
-    def render(self, prompt_path: str, vars: Dict[str, Any], ref: Optional[str] = None, *, safe: bool = False, strict_vars: bool = False, redact: bool = False) -> RenderResult:
+    def render(self, prompt_path: str, vars: dict[str, Any], ref: str | None = None, *, safe: bool = False, strict_vars: bool = False, redact: bool = False) -> RenderResult:
         spec = self.load_prompt(prompt_path, ref=ref)
         check_required_vars(spec, vars, safe=safe, strict_vars=strict_vars, redact=redact)
         msgs = render_messages(spec, vars, safe=safe, strict_vars=strict_vars, redact=redact)

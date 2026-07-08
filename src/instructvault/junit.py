@@ -1,10 +1,13 @@
 from __future__ import annotations
+
 import xml.etree.ElementTree as ET
+from collections.abc import Iterable
 from datetime import datetime, timezone
-from typing import Iterable, Optional
+
 from .eval import TestResult
 
-def write_junit_xml(*, suite_name: str, results: Iterable[TestResult], out_path: str, timestamp: Optional[str] = None) -> None:
+
+def write_junit_xml(*, suite_name: str, results: Iterable[TestResult], out_path: str, timestamp: str | None = None) -> None:
     results = list(results)
     tests = len(results)
     failures = sum(1 for r in results if not r.passed and not r.skipped)

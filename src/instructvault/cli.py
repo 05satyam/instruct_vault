@@ -1,19 +1,20 @@
 from __future__ import annotations
+
 import json
 from pathlib import Path
-from typing import Optional
+
 import typer
+import yaml
 from rich import print as rprint
 
 from .bundle import write_bundle
 from .diff import unified_diff
 from .eval import run_dataset, run_inline_tests
-from .io import load_dataset_jsonl, load_prompt_spec, load_prompt_dict
-from .lock import dumps_lock, verify_lock, write_lock
+from .io import load_dataset_jsonl, load_prompt_dict, load_prompt_spec
+from .junit import write_junit_xml
+from .lock import verify_lock, write_lock
 from .policy import load_policy_module, run_spec_policy
 from .providers import get_provider
-from .junit import write_junit_xml
-import yaml
 from .render import check_required_vars, render_messages
 from .scaffold import init_repo
 from .schema import prompt_json_schema
@@ -36,7 +37,7 @@ def _gather_many(bases: list[Path]) -> list[Path]:
     return list(seen.values())
 
 @app.command()
-def init(repo: Path = typer.Option(Path("."), "--repo")):
+def init(repo: Path = typer.Option(Path("."), "--repo")) -> None:
     init_repo(repo)
     rprint("[green]Initialized prompts/, datasets/, and .github/workflows/ivault.yml[/green]")
 
@@ -44,7 +45,7 @@ def init(repo: Path = typer.Option(Path("."), "--repo")):
 def validate(paths: list[Path] = typer.Argument(...),
              repo: Path = typer.Option(Path("."), "--repo"),
              json_out: bool = typer.Option(False, "--json"),
-             policy: Optional[str] = typer.Option(None, "--policy")):
+             policy: str | None = typer.Option(None, "--policy")) -> None:
     bases = [p if p.is_absolute() else repo / p for p in paths]
     files = _gather_many(bases)
     if not files:
@@ -85,19 +86,19 @@ def validate(paths: list[Path] = typer.Argument(...),
 @app.command()
 def render(prompt_path: str = typer.Argument(...),
            vars_json: str = typer.Option("{}", "--vars"),
-           ref: Optional[str] = typer.Option(None, "--ref"),
+           ref: str | None = typer.Option(None, "--ref"),
            repo: Path = typer.Option(Path("."), "--repo"),
            json_out: bool = typer.Option(False, "--json"),
            allow_no_tests: bool = typer.Option(False, "--allow-no-tests"),
            safe: bool = typer.Option(False, "--safe"),
            strict_vars: bool = typer.Option(False, "--strict-vars"),
-           redact: bool = typer.Option(False, "--redact")):
+           redact: bool = typer.Option(False, "--redact")) -> None:
     store = PromptStore(repo_root=repo)
     spec = load_prompt_spec(store.read_text(prompt_path, ref=ref), allow_no_tests=allow_no_tests)
     try:
         vars_dict = json.loads(vars_json)
-    except Exception:
-        raise typer.BadParameter("Invalid JSON for --vars")
+    except Exception as e:
+        raise typer.BadParameter("Invalid JSON for --vars") from e
     check_required_vars(spec, vars_dict, safe=safe, strict_vars=strict_vars, redact=redact)
     msgs = render_messages(spec, vars_dict, safe=safe, strict_vars=strict_vars, redact=redact)
     if json_out:
@@ -113,7 +114,7 @@ def diff(prompt_path: str = typer.Argument(...),
          ref1: str = typer.Option(..., "--ref1"),
          ref2: str = typer.Option(..., "--ref2"),
          repo: Path = typer.Option(Path("."), "--repo"),
-         json_out: bool = typer.Option(False, "--json")):
+         json_out: bool = typer.Option(False, "--json")) -> None:
     store = PromptStore(repo_root=repo)
     a = store.read_text(prompt_path, ref=ref1)
     b = store.read_text(prompt_path, ref=ref2)
@@ -126,7 +127,7 @@ def diff(prompt_path: str = typer.Argument(...),
 @app.command()
 def resolve(ref: str = typer.Argument(...),
             repo: Path = typer.Option(Path("."), "--repo"),
-            json_out: bool = typer.Option(False, "--json")):
+            json_out: bool = typer.Option(False, "--json")) -> None:
     store = PromptStore(repo_root=repo)
     sha = store.resolve_ref(ref)
     if json_out:
@@ -137,7 +138,7 @@ def resolve(ref: str = typer.Argument(...),
 @app.command()
 def migrate(path: Path = typer.Argument(...),
             repo: Path = typer.Option(Path("."), "--repo"),
-            apply: bool = typer.Option(False, "--apply")):
+            apply: bool = typer.Option(False, "--apply")) -> None:
     base = path if path.is_absolute() else repo / path
     files = _gather_prompt_files(base)
     if not files:
@@ -163,8 +164,8 @@ def migrate(path: Path = typer.Argument(...),
 @app.command()
 def bundle(prompts: Path = typer.Option(Path("prompts"), "--prompts"),
            out: Path = typer.Option(Path("out/ivault.bundle.json"), "--out"),
-           ref: Optional[str] = typer.Option(None, "--ref"),
-           repo: Path = typer.Option(Path("."), "--repo")):
+           ref: str | None = typer.Option(None, "--ref"),
+           repo: Path = typer.Option(Path("."), "--repo")) -> None:
     prompts_dir = prompts if prompts.is_absolute() else repo / prompts
     write_bundle(out, repo_root=repo, prompts_dir=prompts_dir, ref=ref)
     rprint(f"[green]Wrote bundle[/green] {out}")
@@ -172,20 +173,20 @@ def bundle(prompts: Path = typer.Option(Path("prompts"), "--prompts"),
 @app.command()
 def lock(prompts: Path = typer.Option(Path("prompts"), "--prompts"),
          out: Path = typer.Option(Path("ivault.lock.json"), "--out"),
-         ref: Optional[str] = typer.Option(None, "--ref"),
-         repo: Path = typer.Option(Path("."), "--repo")):
+         ref: str | None = typer.Option(None, "--ref"),
+         repo: Path = typer.Option(Path("."), "--repo")) -> None:
     prompts_dir = prompts if prompts.is_absolute() else repo / prompts
     lock_data = write_lock(out, repo_root=repo, prompts_dir=prompts_dir, ref=ref)
-    n = len(lock_data["prompts"])  # type: ignore[arg-type]
+    n = len(lock_data["prompts"])
     rprint(f"[green]Wrote lockfile[/green] {out}  ({n} prompt(s))")
 
 
 @app.command()
 def verify(lockfile: Path = typer.Argument(..., help="Path to ivault.lock.json"),
            prompts: Path = typer.Option(Path("prompts"), "--prompts"),
-           ref: Optional[str] = typer.Option(None, "--ref"),
+           ref: str | None = typer.Option(None, "--ref"),
            repo: Path = typer.Option(Path("."), "--repo"),
-           json_out: bool = typer.Option(False, "--json")):
+           json_out: bool = typer.Option(False, "--json")) -> None:
     prompts_dir = prompts if prompts.is_absolute() else repo / prompts
     lock_data = json.loads(lockfile.read_text(encoding="utf-8"))
     ok, diffs = verify_lock(lock_data, repo_root=repo, prompts_dir=prompts_dir, ref=ref)
@@ -201,7 +202,7 @@ def verify(lockfile: Path = typer.Argument(..., help="Path to ivault.lock.json")
 
 
 @app.command()
-def schema(out: Optional[Path] = typer.Option(None, "--out", help="Write schema to a file instead of stdout")):
+def schema(out: Path | None = typer.Option(None, "--out", help="Write schema to a file instead of stdout")) -> None:
     text = json.dumps(prompt_json_schema(), indent=2, ensure_ascii=False, sort_keys=True) + "\n"
     if out is not None:
         out.parent.mkdir(parents=True, exist_ok=True)
@@ -213,18 +214,18 @@ def schema(out: Optional[Path] = typer.Option(None, "--out", help="Write schema 
 
 @app.command()
 def eval(prompt_path: str = typer.Argument(...),
-         ref: Optional[str] = typer.Option(None, "--ref"),
-         dataset: Optional[Path] = typer.Option(None, "--dataset"),
-         report: Optional[Path] = typer.Option(None, "--report"),
-         junit: Optional[Path] = typer.Option(None, "--junit"),
+         ref: str | None = typer.Option(None, "--ref"),
+         dataset: Path | None = typer.Option(None, "--dataset"),
+         report: Path | None = typer.Option(None, "--report"),
+         junit: Path | None = typer.Option(None, "--junit"),
          repo: Path = typer.Option(Path("."), "--repo"),
          json_out: bool = typer.Option(False, "--json"),
          safe: bool = typer.Option(False, "--safe"),
          strict_vars: bool = typer.Option(False, "--strict-vars"),
          redact: bool = typer.Option(False, "--redact"),
-         policy: Optional[str] = typer.Option(None, "--policy"),
-         provider: Optional[str] = typer.Option(None, "--provider", help="Run prompts through a model and assert on its reply (e.g. 'openai', 'mock'). Off by default for deterministic CI."),
-         judge_provider: Optional[str] = typer.Option(None, "--judge-provider", help="Provider used for LLM-as-judge assertions (e.g. 'openai'). Judge asserts are skipped when unset.")):
+         policy: str | None = typer.Option(None, "--policy"),
+         provider: str | None = typer.Option(None, "--provider", help="Run prompts through a model and assert on its reply (e.g. 'openai', 'mock'). Off by default for deterministic CI."),
+         judge_provider: str | None = typer.Option(None, "--judge-provider", help="Provider used for LLM-as-judge assertions (e.g. 'openai'). Judge asserts are skipped when unset.")) -> None:
     store = PromptStore(repo_root=repo)
     spec = load_prompt_spec(store.read_text(prompt_path, ref=ref), allow_no_tests=False)
     pol = load_policy_module(policy)

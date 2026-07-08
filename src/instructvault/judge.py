@@ -8,7 +8,6 @@ free of any hard LLM-SDK dependency.
 from __future__ import annotations
 
 import re
-from typing import Dict, Tuple
 
 from .providers import Provider
 from .spec import JudgeSpec
@@ -29,7 +28,7 @@ def _parse_score(text: str) -> float:
     return max(0.0, min(1.0, float(match.group(0))))
 
 
-def judge_output(output: str, judge: JudgeSpec, provider: Provider) -> Tuple[bool, float]:
+def judge_output(output: str, judge: JudgeSpec, provider: Provider) -> tuple[bool, float]:
     """Return (passed, score). ``passed`` is ``score >= judge.threshold``."""
     messages = [
         {"role": "system", "content": _JUDGE_SYSTEM},
@@ -38,7 +37,7 @@ def judge_output(output: str, judge: JudgeSpec, provider: Provider) -> Tuple[boo
             "content": f"RUBRIC:\n{judge.rubric}\n\nRESPONSE:\n{output}\n\nScore (0.0-1.0):",
         },
     ]
-    params: Dict[str, object] = {"model": judge.model} if judge.model else {}
+    params: dict[str, object] = {"model": judge.model} if judge.model else {}
     raw = provider(messages, params)
     score = _parse_score(raw)
     return (score >= judge.threshold, score)

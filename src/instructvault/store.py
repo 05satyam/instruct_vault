@@ -1,7 +1,7 @@
 from __future__ import annotations
+
 import subprocess
 from pathlib import Path
-from typing import List, Optional
 
 # Git operations should never hang a runtime request. Bound them defensively.
 _GIT_TIMEOUT_SECONDS = 30
@@ -20,7 +20,7 @@ class PromptStore:
             raise ValueError(f"Prompt path escapes repository root: {rel_path}") from None
         return candidate
 
-    def _run_git(self, args: List[str], *, on_error: str) -> str:
+    def _run_git(self, args: list[str], *, on_error: str) -> str:
         cmd = ["git", "-C", str(self.repo_root), *args]
         try:
             res = subprocess.run(
@@ -38,7 +38,7 @@ class PromptStore:
         """Modification time (ns) of a worktree file, for cache invalidation."""
         return self._safe_abspath(rel_path.lstrip("/")).stat().st_mtime_ns
 
-    def read_text(self, rel_path: str, ref: Optional[str] = None) -> str:
+    def read_text(self, rel_path: str, ref: str | None = None) -> str:
         normalized = rel_path.lstrip("/")
         if ref is None:
             return self._safe_abspath(normalized).read_text(encoding="utf-8")

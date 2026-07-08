@@ -1,13 +1,16 @@
 from __future__ import annotations
+
 import subprocess
 from pathlib import Path
+
 from instructvault import InstructVault, RenderResult
 
 
 def _init(tmp_path: Path) -> None:
     subprocess.check_call(["git", "-C", str(tmp_path), "init"])
-    from instructvault.cli import app
     from typer.testing import CliRunner
+
+    from instructvault.cli import app
     CliRunner().invoke(app, ["init", "--repo", str(tmp_path)])
 
 

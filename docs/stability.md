@@ -4,15 +4,23 @@ This document explains which parts of InstructVault are intended to be stable fo
 
 ## Stable today
 - Prompt spec `1.x`
-- CLI command names: `init`, `validate`, `render`, `eval`, `diff`, `resolve`, `bundle`, `migrate`
+- CLI command names: `init`, `validate`, `render`, `eval`, `diff`, `resolve`, `bundle`, `migrate`, `lock`, `verify`, `schema`
 - SDK entry point: `from instructvault import InstructVault`
 - Bundle format version `1.0`
+- Lockfile format version `1.0` (`lock_version`)
 - JSON and JUnit report output shapes where already documented
+
+## Versioning and releases
+- The project follows [Semantic Versioning](https://semver.org/).
+- Releases are driven by [Conventional Commits](https://www.conventionalcommits.org/):
+  `fix:` → patch, `feat:` → minor, `feat!:`/`BREAKING CHANGE:` → major.
+- The published package ships a `py.typed` marker; type hints are part of the API.
 
 ## Compatibility expectations
 - `1.x` prompt spec changes should be backward compatible with `1.0`.
 - Breaking prompt spec changes require a major version bump.
 - Existing CLI command names should not change without a deprecation path.
+- Lockfile and bundle format bumps are additive within a major version.
 - Deprecated behavior should be called out in `CHANGELOG.md`.
 
 ## Less stable areas

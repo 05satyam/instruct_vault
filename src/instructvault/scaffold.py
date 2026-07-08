@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from pathlib import Path
 
 DEFAULT_PROMPT = '''spec_version: "1.0"
@@ -39,6 +40,8 @@ jobs:
           python-version: "3.11"
       - run: pip install instructvault
       - run: ivault validate prompts
+      # Fails if a prompt changed without running `ivault lock` to update the lockfile.
+      - run: ivault verify ivault.lock.json --prompts prompts
       - run: ivault eval prompts/hello_world.prompt.yml --report out/report.json --junit out/junit.xml
       - uses: actions/upload-artifact@v4
         if: always()
@@ -60,3 +63,10 @@ def init_repo(repo_root: Path) -> None:
         sample_prompt.write_text(DEFAULT_PROMPT, encoding="utf-8")
     if not workflow.exists():
         workflow.write_text(DEFAULT_WORKFLOW, encoding="utf-8")
+
+    # Generate an initial lockfile so `ivault verify` works out of the box.
+    from .lock import write_lock
+
+    lockfile = repo_root / "ivault.lock.json"
+    if not lockfile.exists():
+        write_lock(lockfile, repo_root=repo_root, prompts_dir=prompts, ref=None)

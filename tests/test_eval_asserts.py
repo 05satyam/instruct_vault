@@ -1,7 +1,9 @@
 from __future__ import annotations
-from instructvault.spec import PromptSpec
+
 from instructvault.eval import run_inline_tests
 from instructvault.providers import get_provider
+from instructvault.spec import PromptSpec
+
 
 def _spec_with_assert(assert_block: dict) -> PromptSpec:
     data = {

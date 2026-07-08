@@ -1,11 +1,12 @@
 from __future__ import annotations
-from typing import Callable, Dict, List, Optional
+
+from collections.abc import Callable
 
 # A provider takes rendered messages + model params and returns the model's reply text.
-Provider = Callable[[List[Dict[str, str]], Dict[str, object]], str]
+Provider = Callable[[list[dict[str, str]], dict[str, object]], str]
 
 
-def _mock_provider(messages: List[Dict[str, str]], params: Dict[str, object]) -> str:
+def _mock_provider(messages: list[dict[str, str]], params: dict[str, object]) -> str:
     """Deterministic provider for tests/CI: echoes the last user message."""
     for m in reversed(messages):
         if m["role"] == "user":
@@ -13,7 +14,7 @@ def _mock_provider(messages: List[Dict[str, str]], params: Dict[str, object]) ->
     return messages[-1]["content"] if messages else ""
 
 
-def _openai_provider(messages: List[Dict[str, str]], params: Dict[str, object]) -> str:
+def _openai_provider(messages: list[dict[str, str]], params: dict[str, object]) -> str:
     from openai import OpenAI  # lazy import; only needed when actually used
 
     client = OpenAI()
@@ -23,10 +24,10 @@ def _openai_provider(messages: List[Dict[str, str]], params: Dict[str, object]) 
     return resp.choices[0].message.content or ""
 
 
-_PROVIDERS: Dict[str, Provider] = {"mock": _mock_provider, "openai": _openai_provider}
+_PROVIDERS: dict[str, Provider] = {"mock": _mock_provider, "openai": _openai_provider}
 
 
-def get_provider(name: Optional[str]) -> Optional[Provider]:
+def get_provider(name: str | None) -> Provider | None:
     if not name:
         return None
     if name not in _PROVIDERS:

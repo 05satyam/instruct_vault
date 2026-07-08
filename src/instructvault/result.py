@@ -7,11 +7,13 @@ keeps working, while the model metadata and provider adapter methods are
 available as attributes/methods on the same object.
 """
 from __future__ import annotations
-from typing import Any, Dict, List, Optional
+
+from typing import Any
+
 from .spec import PromptMessage
 
 
-class RenderResult(list):
+class RenderResult(list[PromptMessage]):
     """Returned by ``InstructVault.render()``.
 
     A ``list`` of :class:`PromptMessage` that additionally carries the model
@@ -32,16 +34,16 @@ class RenderResult(list):
 
     def __init__(
         self,
-        messages: List[PromptMessage],
+        messages: list[PromptMessage],
         *,
-        model: Optional[str] = None,
-        provider: Optional[str] = None,
-        temperature: Optional[float] = None,
-        top_p: Optional[float] = None,
-        max_tokens: Optional[int] = None,
+        model: str | None = None,
+        provider: str | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+        max_tokens: int | None = None,
         prompt_name: str = "",
         prompt_path: str = "",
-        ref: Optional[str] = None,
+        ref: str | None = None,
     ) -> None:
         super().__init__(messages)
         self.model = model
@@ -54,7 +56,7 @@ class RenderResult(list):
         self.ref = ref
 
     @property
-    def messages(self) -> List[PromptMessage]:
+    def messages(self) -> list[PromptMessage]:
         """The rendered messages (alias for ``list(self)``)."""
         return list(self)
 
@@ -69,7 +71,7 @@ class RenderResult(list):
     # Provider adapters
     # ------------------------------------------------------------------
 
-    def to_openai(self) -> Dict[str, Any]:
+    def to_openai(self) -> dict[str, Any]:
         """Return kwargs ready for ``openai.chat.completions.create(**result.to_openai())``.
 
         Only includes keys that are set in the prompt spec, so callers can
@@ -77,7 +79,7 @@ class RenderResult(list):
 
             client.chat.completions.create(**{**result.to_openai(), "stream": True})
         """
-        kwargs: Dict[str, Any] = {
+        kwargs: dict[str, Any] = {
             "messages": [{"role": m.role, "content": m.content} for m in self],
         }
         if self.model:
@@ -90,7 +92,7 @@ class RenderResult(list):
             kwargs["max_tokens"] = self.max_tokens
         return kwargs
 
-    def to_anthropic(self) -> Dict[str, Any]:
+    def to_anthropic(self) -> dict[str, Any]:
         """Return kwargs ready for ``anthropic.messages.create(**result.to_anthropic())``.
 
         System messages are merged into the ``system`` key; all other roles go
@@ -102,7 +104,7 @@ class RenderResult(list):
             for m in self
             if m.role != "system"
         ]
-        kwargs: Dict[str, Any] = {"messages": chat_msgs}
+        kwargs: dict[str, Any] = {"messages": chat_msgs}
         if system_parts:
             kwargs["system"] = "\n\n".join(system_parts)
         if self.model:
@@ -113,7 +115,7 @@ class RenderResult(list):
             kwargs["temperature"] = self.temperature
         return kwargs
 
-    def to_litellm(self) -> Dict[str, Any]:
+    def to_litellm(self) -> dict[str, Any]:
         """Return kwargs for LiteLLM's ``completion()`` — works with 100+ models.
 
         LiteLLM uses the OpenAI message format but prefixes the model with the
@@ -126,7 +128,7 @@ class RenderResult(list):
             kwargs["model"] = f"{self.provider}/{self.model}"
         return kwargs
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize to a plain dict for logging, tracing, or observability pipelines."""
         return {
             "prompt_name": self.prompt_name,
