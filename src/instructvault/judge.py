@@ -19,14 +19,47 @@ _JUDGE_SYSTEM = (
 )
 
 _SCORE_RE = re.compile(r"(?:0(?:\.\d+)?|1(?:\.0+)?|\.\d+)")
+_FRACTION_RE = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*/\s*10\s*$")
+_PERCENT_RE = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*%\s*$")
 
 
 def _parse_score(text: str) -> float:
-    match = _SCORE_RE.search(text.strip())
-    if match is None:
-        raise ValueError(f"Could not parse a 0.0-1.0 score from judge output: {text!r}")
-    return max(0.0, min(1.0, float(match.group(0))))
+    text = text.strip()
 
+    # Handle "8/10"
+    match = _FRACTION_RE.match(text)
+    if match:
+        score = float(match.group(1)) / 10
+        if not 0.0 <= score <= 1.0:
+            raise ValueError(
+                f"Could not parse a 0.0-1.0 score from judge output: {text!r}"
+            )
+        return score
+
+    # Handle "80%"
+    match = _PERCENT_RE.match(text)
+    if match:
+        score = float(match.group(1)) / 100
+        if not 0.0 <= score <= 1.0:
+            raise ValueError(
+                f"Could not parse a 0.0-1.0 score from judge output: {text!r}"
+            )
+        return score
+
+    # Existing float parsing
+    match = _SCORE_RE.search(text)
+    if match:
+        score = float(match.group(0))
+        if not 0.0 <= score <= 1.0:
+            raise ValueError(
+                f"Could not parse a 0.0-1.0 score from judge output: {text!r}"
+            )
+        return score
+
+    raise ValueError(
+        f"Could not parse a 0.0-1.0 score from judge output: {text!r}"
+)
+    
 
 def judge_output(output: str, judge: JudgeSpec, provider: Provider) -> tuple[bool, float]:
     """Return (passed, score). ``passed`` is ``score >= judge.threshold``."""
