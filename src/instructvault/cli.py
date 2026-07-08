@@ -12,12 +12,14 @@ from .diff import unified_diff
 from .eval import run_dataset, run_inline_tests
 from .io import load_dataset_jsonl, load_prompt_dict, load_prompt_spec
 from .junit import write_junit_xml
+from .lint import Finding, count_by_severity, gate, run_lint, to_markdown
 from .lock import verify_lock, write_lock
 from .policy import load_policy_module, run_spec_policy
 from .providers import get_provider
 from .render import check_required_vars, render_messages
 from .scaffold import init_repo
 from .schema import prompt_json_schema
+from .spec import PromptSpec
 from .store import PromptStore
 
 app = typer.Typer(help="InstructVault: git-first prompt registry + CI evals + runtime SDK")
@@ -81,6 +83,56 @@ def validate(paths: list[Path] = typer.Argument(...),
                 rprint(f"[red]FAIL[/red] {rel_path}  {e}")
     if json_out:
         rprint(json.dumps({"ok": ok, "results": results}))
+    raise typer.Exit(code=0 if ok else 1)
+
+@app.command()
+def lint(paths: list[Path] = typer.Argument(...),
+         repo: Path = typer.Option(Path("."), "--repo"),
+         fmt: str = typer.Option("text", "--format", help="text | json | md"),
+         fail_under: str | None = typer.Option(
+             None, "--fail-under",
+             help="error | warning | info; exit non-zero if any finding is at/above this severity")) -> None:
+    if fmt not in ("text", "json", "md"):
+        raise typer.BadParameter("--format must be one of: text, json, md")
+    if fail_under is not None and fail_under not in ("error", "warning", "info"):
+        raise typer.BadParameter("--fail-under must be one of: error, warning, info")
+
+    bases = [p if p.is_absolute() else repo / p for p in paths]
+    files = _gather_many(bases)
+    if not files:
+        raise typer.BadParameter("No prompt files found")
+
+    items: list[tuple[str, PromptSpec]] = []
+    parse_findings: list[Finding] = []
+    for f in files:
+        try:
+            rel = f.relative_to(repo).as_posix()
+        except ValueError:
+            rel = str(f)
+        try:
+            spec = load_prompt_spec(f.read_text(encoding="utf-8"), allow_no_tests=True)
+            items.append((rel, spec))
+        except Exception as e:
+            parse_findings.append(Finding("IV000", "error", f"Could not parse prompt: {e}", rel))
+
+    findings = parse_findings + run_lint(items)
+    ok = gate(findings, fail_under)
+    counts = count_by_severity(findings)
+
+    if fmt == "json":
+        typer.echo(json.dumps(
+            {"ok": ok, "counts": counts, "findings": [x.to_dict() for x in findings]}))
+    elif fmt == "md":
+        typer.echo(to_markdown(findings))
+    else:
+        colors = {"error": "red", "warning": "yellow", "info": "cyan"}
+        for x in findings:
+            loc = f" ({x.location})" if x.location else ""
+            rprint(f"[{colors[x.severity]}]{x.severity.upper()}[/{colors[x.severity]}] "
+                   f"{x.rule_id} {x.prompt_path}{loc}: {x.message}")
+        summary = (f"{counts['error']} error(s), {counts['warning']} warning(s), "
+                   f"{counts['info']} info")
+        rprint(f"[bold]{summary}[/bold]" if findings else "[green]No lint findings[/green]")
     raise typer.Exit(code=0 if ok else 1)
 
 @app.command()

@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Added
+- **`ivault lint`** — a deterministic prompt quality gate (a linter/SonarQube for prompts). Reports quality "smells" separate from `validate`'s hard errors, with severities, a stable JSON `Finding` shape, a Markdown scorecard (`--format md`) for CI job summaries, and severity gating (`--fail-under`). Ships two zero-false-positive rules: `IV001` (hardcoded secret in template) and `IV002` (missing description), plus an `IV000` parse guard. Runs fully offline.
+
 ### Changed
 - Releases are now cut manually by tagging (`vX.Y.Z`), which triggers the PyPI
   publish workflow. The `semantic-release` workflow was removed because it cannot

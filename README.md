@@ -73,6 +73,7 @@ response = client.chat.completions.create(**result.to_openai())
 | --- | --- |
 | `ivault init` | Scaffold `prompts/`, `datasets/`, and a CI workflow |
 | `ivault validate <path>` | Validate prompt specs (add `--policy` for custom rules) |
+| `ivault lint <path> --fail-under warning` | Quality gate: report prompt smells (secrets, missing docs), score, and gate CI |
 | `ivault render <prompt> --vars '{...}'` | Render messages locally |
 | `ivault eval <prompt> --report out/report.json --junit out/junit.xml` | Run tests/datasets, emit reports |
 | `ivault diff <prompt> --ref1 <a> --ref2 <b>` | Diff a prompt across two refs |
@@ -110,6 +111,7 @@ python -m pytest
 - [`docs/dropin_guide.md`](docs/dropin_guide.md) — add InstructVault to an existing CI/CD repo
 - [`docs/cookbooks.md`](docs/cookbooks.md) — OpenAI, LangChain, LlamaIndex, RAG, policies, bundles
 - [`docs/lockfiles_and_judge.md`](docs/lockfiles_and_judge.md) — reproducible releases + LLM-as-judge evals
+- [`docs/lint.md`](docs/lint.md) — the prompt quality gate (`ivault lint`) and rule catalog
 - [`docs/spec.md`](docs/spec.md) — prompt spec and validation rules
 - [`docs/ci.md`](docs/ci.md) · [`docs/governance.md`](docs/governance.md) · [`docs/stability.md`](docs/stability.md) · [`docs/roadmap.md`](docs/roadmap.md) · [`docs/performance.md`](docs/performance.md)
 - Examples: [`examples/ivault_demo_template`](examples/ivault_demo_template/README.md), [`examples/llamaindex_demo`](examples/llamaindex_demo/README.md), [`examples/notebooks`](examples/notebooks), [`examples/policies`](examples/policies)

@@ -9,6 +9,18 @@ This roadmap is intentionally narrow. InstructVault works best when the core sta
 - Published JSON Schema (`ivault schema`) for editor autocomplete.
 - Reusable GitHub Action, pre-commit hook, cross-OS/Python CI matrix, and tag-triggered PyPI publishing.
 
+## Prompt quality gate (in progress)
+A deterministic, git-first analog to SonarQube for prompts, built as thin,
+complete slices rather than a broad half-finished feature:
+- `ivault lint` engine with a stable `Finding` contract, severity gating, and a
+  Markdown scorecard for CI summaries. **Shipped** with rules `IV001` (secret in
+  template) and `IV002` (missing description).
+- Planned rules (tracked as issues): prompt-injection smell, PII in template,
+  prompt-too-long / token budget, hardcoded-value-should-be-a-variable.
+- Planned reporting: SARIF output for GitHub Code Scanning; a lint baseline so
+  large repos can adopt incrementally ("fail only on new findings").
+- Eval depth: regression baselines and cost/latency budgets.
+
 ## Near-term priorities
 - Stronger end-to-end examples for common LLM stacks
 - Better contributor onboarding and repo hygiene

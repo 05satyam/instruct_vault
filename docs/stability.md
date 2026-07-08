@@ -4,7 +4,7 @@ This document explains which parts of InstructVault are intended to be stable fo
 
 ## Stable today
 - Prompt spec `1.x`
-- CLI command names: `init`, `validate`, `render`, `eval`, `diff`, `resolve`, `bundle`, `migrate`, `lock`, `verify`, `schema`
+- CLI command names: `init`, `validate`, `lint`, `render`, `eval`, `diff`, `resolve`, `bundle`, `migrate`, `lock`, `verify`, `schema`
 - SDK entry point: `from instructvault import InstructVault`
 - Bundle format version `1.0`
 - Lockfile format version `1.0` (`lock_version`)
@@ -27,6 +27,9 @@ This document explains which parts of InstructVault are intended to be stable fo
 - Deprecated behavior should be called out in `CHANGELOG.md`.
 
 ## Less stable areas
+- Lint rule set: new rules may surface new findings across minor versions, so a
+  `--fail-under` gate can get stricter on upgrade. The `lint` command name and the
+  `Finding` JSON shape are stable and additive; the set of `IVxxx` rules grows.
 - Playground package and UI details
 - Example app structure
 - Optional docs and cookbook patterns
