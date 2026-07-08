@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+No unreleased changes.
+
+## [0.7.0] - 2026-07-08
 ### Added
 - **`ivault lint`** — a deterministic prompt quality gate (a linter/SonarQube for prompts). Reports quality "smells" separate from `validate`'s hard errors, with severities, a stable JSON `Finding` shape, a Markdown scorecard (`--format md`) for CI job summaries, and severity gating (`--fail-under`). Ships two zero-false-positive rules: `IV001` (hardcoded secret in template) and `IV002` (missing description), plus an `IV000` parse guard. Runs fully offline.
 
