@@ -83,7 +83,7 @@ response = client.chat.completions.create(**result.to_openai())
 | `ivault schema --out schemas/prompt.schema.json` | Emit the prompt JSON Schema |
 | `ivault resolve <ref>` / `ivault migrate prompts` | Resolve a ref to a SHA / migrate specs |
 
-By default `eval` asserts against the **rendered prompt** — fully deterministic, no network. Add `--provider openai` to instead call a model and assert on its **reply** (needs `OPENAI_API_KEY`). Network is strictly opt-in, so CI stays deterministic unless you ask for a provider.
+By default `eval` asserts against the **rendered prompt** — fully deterministic, no network. Add `--provider openai` to instead call a model and assert on its **reply** (needs `OPENAI_API_KEY`), or `--provider ollama` to run against a local model (defaults to `http://127.0.0.1:11434`, override with `OLLAMA_HOST`). Network is strictly opt-in, so CI stays deterministic unless you ask for a provider.
 
 ## Where it fits
 | Approach | Versioned in Git | CI-friendly | Local runtime | Hosted dependency |

@@ -65,6 +65,9 @@ ivault eval prompts/judged_summary.prompt.yml
 
 # With a judge model (needs OPENAI_API_KEY):
 ivault eval prompts/judged_summary.prompt.yml --judge-provider openai
+
+# Or against a local model (no API key; needs a running Ollama server):
+ivault eval prompts/judged_summary.prompt.yml --judge-provider ollama
 ```
 
 See [`examples/prompts/judged_summary.prompt.yml`](../examples/prompts/judged_summary.prompt.yml)

@@ -73,6 +73,11 @@ no_implicit_optional = true
 module = ["openai", "openai.*"]
 ignore_missing_imports = true
 
+# `ollama` is likewise an optional, lazily imported provider dependency.
+[[tool.mypy.overrides]]
+module = ["ollama", "ollama.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]

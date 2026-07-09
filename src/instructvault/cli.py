@@ -281,8 +281,8 @@ def eval(prompt_path: str = typer.Argument(...),
          strict_vars: bool = typer.Option(False, "--strict-vars"),
          redact: bool = typer.Option(False, "--redact"),
          policy: str | None = typer.Option(None, "--policy"),
-         provider: str | None = typer.Option(None, "--provider", help="Run prompts through a model and assert on its reply (e.g. 'openai', 'mock'). Off by default for deterministic CI."),
-         judge_provider: str | None = typer.Option(None, "--judge-provider", help="Provider used for LLM-as-judge assertions (e.g. 'openai'). Judge asserts are skipped when unset.")) -> None:
+         provider: str | None = typer.Option(None, "--provider", help="Run prompts through a model and assert on its reply (e.g. 'openai', 'ollama', 'mock'). Off by default for deterministic CI."),
+         judge_provider: str | None = typer.Option(None, "--judge-provider", help="Provider used for LLM-as-judge assertions (e.g. 'openai', 'ollama'). Judge asserts are skipped when unset.")) -> None:
     store = PromptStore(repo_root=repo)
     spec = load_prompt_spec(store.read_text(prompt_path, ref=ref), allow_no_tests=False)
     pol = load_policy_module(policy)

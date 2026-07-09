@@ -24,7 +24,19 @@ def _openai_provider(messages: list[dict[str, str]], params: dict[str, object]) 
     return resp.choices[0].message.content or ""
 
 
-_PROVIDERS: dict[str, Provider] = {"mock": _mock_provider, "openai": _openai_provider}
+def _ollama_provider(messages: list[dict[str, str]], params: dict[str, object]) -> str:
+    from ollama import Client  # lazy import; only needed when actually used
+
+    # Client() defaults host to http://127.0.0.1:11434 and honors OLLAMA_HOST for overrides.
+    client = Client()
+    model = str(params.get("model") or "llama3.2")
+    option_keys = {"temperature": "temperature", "top_p": "top_p", "max_tokens": "num_predict"}
+    options = {option_keys[k]: params[k] for k in option_keys if params.get(k) is not None}
+    resp = client.chat(model=model, messages=messages, options=options or None)
+    return resp.message.content or ""
+
+
+_PROVIDERS: dict[str, Provider] = {"mock": _mock_provider, "openai": _openai_provider, "ollama": _ollama_provider}
 
 
 def get_provider(name: str | None) -> Provider | None:

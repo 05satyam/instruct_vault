@@ -3,7 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
-No unreleased changes.
+### Added
+- **`ollama` provider** for `--provider`/`--judge-provider`: run evals and judge assertions against a local model via the `ollama` Python SDK. No API key needed; defaults to `http://127.0.0.1:11434` and honors `OLLAMA_HOST` for overrides.
 
 ## [0.7.0] - 2026-07-08
 ### Added
