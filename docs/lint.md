@@ -25,6 +25,28 @@ ivault lint prompts --fail-under warning
 By default `lint` never fails the build; it only reports. Pass `--fail-under`
 (`error`, `warning`, or `info`) to turn it into a gate.
 
+## GitHub Actions scorecard
+
+The composite Action ships with a `lint` input (default `true`) that
+automatically appends the Markdown scorecard to the job summary — no extra
+workflow YAML needed:
+
+```yaml
+- uses: 05satyam/instruct_vault@v1
+  with:
+    prompts: my-prompts
+    lint: true                    # default; produces the scorecard
+    fail-under: warning           # optional; fail CI at warning or above
+```
+
+The scorecard appears in the **Job Summary** section of the checks tab as an
+"InstructVault Prompt Lint" block. Because `$GITHUB_STEP_SUMMARY` works on
+private repos, this is the simplest path to a prompt-quality dashboard for any
+repo using the Action.
+
+When `fail-under` is set and the threshold is exceeded, the step fails and the
+overall check is marked red. Unset, lint is purely advisory and won't fail.
+
 ## Severities
 
 | Severity | Meaning |
