@@ -2,7 +2,8 @@
   <img src="docs/assets/logo_light.svg" alt="InstructVault logo" width="500" />
 </div>
 
-# InstructVault (`ivault`) - Prompt changes deserve code review and CI.
+# InstructVault (`ivault`) 
+  ### Prompt changes deserve code review and CI.
 [![PyPI version](https://img.shields.io/pypi/v/instructvault.svg)](https://pypi.org/project/instructvault/)
 [![Python versions](https://img.shields.io/pypi/pyversions/instructvault.svg)](https://pypi.org/project/instructvault/)
 [![CI](https://github.com/05satyam/instruct_vault/actions/workflows/ci.yml/badge.svg)](https://github.com/05satyam/instruct_vault/actions/workflows/ci.yml)
