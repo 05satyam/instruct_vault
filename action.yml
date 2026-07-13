@@ -1,5 +1,5 @@
 name: "InstructVault"
-description: "Validate, evaluate, and (optionally) lock-check prompts with InstructVault."
+description: "Validate, evaluate, lint, and (optionally) lock-check prompts with InstructVault."
 branding:
   icon: "check-circle"
   color: "purple"
@@ -20,6 +20,14 @@ inputs:
     description: "Path to a lockfile to verify against. Skipped if empty or missing."
     required: false
     default: ""
+  lint:
+    description: "Run `ivault lint --format md` and append the scorecard to the GitHub Actions job summary."
+    required: false
+    default: "true"
+  fail-under:
+    description: "If set, fail the lint check when the highest-severity finding is at or above this level (error, warning, info). When empty, lint only reports."
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -34,6 +42,19 @@ runs:
     - name: Validate prompts
       shell: bash
       run: ivault validate "${{ inputs.prompts }}"
+    - name: Lint prompts (scorecard)
+      if: ${{ inputs.lint == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "## InstructVault Prompt Lint" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        if [ -n "${{ inputs.fail-under }}" ]; then
+          ivault lint "${{ inputs.prompts }}" --format md \
+            --fail-under "${{ inputs.fail-under }}" >> "$GITHUB_STEP_SUMMARY"
+        else
+          ivault lint "${{ inputs.prompts }}" --format md >> "$GITHUB_STEP_SUMMARY"
+        fi
     - name: Evaluate prompts
       if: ${{ inputs.eval == 'true' }}
       shell: bash
