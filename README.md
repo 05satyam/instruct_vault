@@ -2,7 +2,7 @@
   <img src="docs/assets/logo_light.svg" alt="InstructVault logo" width="500" />
 </div>
 
-# InstructVault (`ivault`)
+# InstructVault (`ivault`) - Prompt changes deserve code review and CI.
 [![PyPI version](https://img.shields.io/pypi/v/instructvault.svg)](https://pypi.org/project/instructvault/)
 [![Python versions](https://img.shields.io/pypi/pyversions/instructvault.svg)](https://pypi.org/project/instructvault/)
 [![CI](https://github.com/05satyam/instruct_vault/actions/workflows/ci.yml/badge.svg)](https://github.com/05satyam/instruct_vault/actions/workflows/ci.yml)
@@ -10,6 +10,11 @@
 [![Downloads](https://img.shields.io/pypi/dm/instructvault.svg)](https://pypi.org/project/instructvault/)
 [![License](https://img.shields.io/pypi/l/instructvault.svg)](https://github.com/05satyam/instruct_vault/blob/main/LICENSE)
 [![Types](https://img.shields.io/badge/types-py.typed-blue.svg)](https://peps.python.org/pep-0561/)
+
+
+
+InstructVault is a Git-native quality gate for prompts. It catches prompt problems, runs deterministic tests, and versions releases through your
+existing pull-request workflow—without requiring a hosted prompt platform.
 
 **Version prompts in Git, test them in CI, load them locally at runtime.**
 
