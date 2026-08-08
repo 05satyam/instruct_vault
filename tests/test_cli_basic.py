@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+from importlib.metadata import version
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,13 @@ from typer.testing import CliRunner
 from instructvault.cli import app
 
 runner = CliRunner()
+
+
+def test_version() -> None:
+    res = runner.invoke(app, ["--version"])
+    assert res.exit_code == 0
+    assert res.stdout.strip() == f"ivault {version('instructvault')}"
+
 
 def _git_init(repo: Path) -> None:
     subprocess.check_call(["git", "-C", str(repo), "init"])
