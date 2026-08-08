@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 import typer
@@ -23,6 +24,31 @@ from .spec import PromptSpec
 from .store import PromptStore
 
 app = typer.Typer(help="InstructVault: git-first prompt registry + CI evals + runtime SDK")
+
+
+def _version_callback(value: bool) -> None:
+    if not value:
+        return
+    try:
+        package_version = version("instructvault")
+    except PackageNotFoundError:
+        package_version = "unknown"
+    typer.echo(f"ivault {package_version}")
+    raise typer.Exit()
+
+
+@app.callback()
+def main(
+    show_version: bool = typer.Option(
+        False,
+        "--version",
+        callback=_version_callback,
+        is_eager=True,
+        help="Show the installed version and exit.",
+    ),
+) -> None:
+    """InstructVault: git-first prompt registry + CI evals + runtime SDK."""
+
 
 def _gather_prompt_files(base: Path) -> list[Path]:
     if base.is_file():
